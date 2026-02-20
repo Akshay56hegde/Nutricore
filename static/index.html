@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriCore - Protein Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <nav class="bg-blue-600 p-4 text-white shadow-lg">
+        <div class="container mx-auto flex justify-between">
+            <h1 class="text-2xl font-bold">NutriCore</h1>
+            <div id="user-info" class="hidden font-semibold"></div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto mt-10 p-5">
+        
+        <div id="auth-section" class="max-w-md mx-auto bg-white p-8 rounded shadow">
+            <h2 class="text-xl mb-4 font-bold border-b pb-2">Login / Register</h2>
+            <input id="email" type="email" placeholder="Email" class="w-full p-2 mb-2 border rounded">
+            <input id="password" type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded">
+            <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-700">Login</button>
+            <p class="text-center my-2 text-gray-500">or</p>
+            <button onclick="registerPrompt()" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-700">Create New Account</button>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <div class="bg-blue-50 p-6 rounded-lg mb-6 border border-blue-200">
+                <h2 class="text-2xl font-bold text-blue-800">Your Daily Suggestion</h2>
+                <p id="suggestion-text" class="text-lg mt-2 text-blue-600"></p>
+            </div>
+
+            <h3 class="text-xl font-bold mb-4">Available Products</h3>
+            <div id="product-list" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                </div>
+            
+            <div class="mt-10 p-6 bg-white rounded shadow text-right">
+                <button onclick="checkout()" class="bg-orange-500 text-white px-8 py-3 rounded-full font-bold hover:bg-orange-600">Checkout & Get Invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        let cart = [];
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                currentUserId = data.user_id;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('user-info').classList.remove('hidden');
+                document.getElementById('user-info').innerText = "Target: " + data.daily_protein_target + "g";
+                document.getElementById('suggestion-text').innerText = data.suggestion;
+                loadProducts();
+            } else {
+                alert(data.message);
+            }
+        }
+
+        async function loadProducts() {
+            const res = await fetch('/products');
+            const products = await res.json();
+            const list = document.getElementById('product-list');
+            list.innerHTML = '';
+            products.forEach(p => {
+                list.innerHTML += `
+                    <div class="bg-white p-4 rounded shadow border">
+                        <h4 class="font-bold">${p.name}</h4>
+                        <p class="text-gray-600">${p.protein}g Protein</p>
+                        <p class="text-blue-600 font-bold">₹${p.price}</p>
+                        <button onclick="addToCart(${p.id})" class="mt-2 bg-gray-200 px-4 py-1 rounded hover:bg-gray-300 text-sm">Add to Cart</button>
+                    </div>
+                `;
+            });
+        }
+
+        function addToCart(id) {
+            cart.push(id);
+            alert("Added to cart! Current items: " + cart.length);
+        }
+
+        async function checkout() {
+            if (cart.length === 0) return alert("Cart is empty!");
+            
+            const res = await fetch('/checkout', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: currentUserId, product_ids: cart })
+            });
+
+            const data = await res.json();
+            alert(data.status + "\nTotal Protein: " + data.invoice.total_protein_gained + "g\nPrice: ₹" + data.invoice.total_price);
+            cart = [];
+        }
+    </script>
+</body>
+</html>
