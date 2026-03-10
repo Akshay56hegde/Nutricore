@@ -2,108 +2,201 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriCore - Protein Tracker</title>
+    <title>NutriCore | Suite</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-slate-50 text-slate-900 font-sans">
 
-    <nav class="bg-blue-600 p-4 text-white shadow-lg">
-        <div class="container mx-auto flex justify-between">
-            <h1 class="text-2xl font-bold">NutriCore</h1>
-            <div id="user-info" class="hidden font-semibold"></div>
+    <nav class="bg-white border-b p-4 px-10 flex justify-between items-center sticky top-0 z-50">
+        <h1 class="text-2xl font-black text-blue-600 italic">NUTRICORE</h1>
+        <div id="nav-links" class="hidden flex items-center gap-6 font-bold text-sm">
+            <button onclick="location.reload()" class="bg-slate-100 px-4 py-2 rounded-full uppercase">Logout</button>
         </div>
     </nav>
 
-    <div class="container mx-auto mt-10 p-5">
-        
-        <div id="auth-section" class="max-w-md mx-auto bg-white p-8 rounded shadow">
-            <h2 class="text-xl mb-4 font-bold border-b pb-2">Login / Register</h2>
-            <input id="email" type="email" placeholder="Email" class="w-full p-2 mb-2 border rounded">
-            <input id="password" type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded">
-            <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-700">Login</button>
-            <p class="text-center my-2 text-gray-500">or</p>
-            <button onclick="registerPrompt()" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-700">Create New Account</button>
+    <div class="container mx-auto p-6">
+        <div id="view-auth" class="max-w-md mx-auto mt-10 bg-white p-8 rounded-3xl shadow-xl border">
+            <div id="login-form">
+                <h2 class="text-4xl font-extrabold mb-8 italic text-blue-600 flex items-center gap-2"><i class="fas fa-user-circle text-3xl"></i>Sign In</h2>
+                <div id="login-message" class="mb-4 hidden px-4 py-2 rounded-xl text-center font-bold"></div>
+                <div class="space-y-4 mb-6">
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute left-4 top-4 text-slate-400"></i>
+                        <input id="email" type="email" placeholder="Email" class="w-full pl-12 p-4 bg-slate-50 border rounded-2xl outline-none focus:border-blue-600">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-4 text-slate-400"></i>
+                        <input id="password" type="password" placeholder="Password" class="w-full pl-12 p-4 bg-slate-50 border rounded-2xl outline-none focus:border-blue-600">
+                    </div>
+                </div>
+                <button onclick="login()" class="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white py-4 rounded-2xl font-black shadow-lg hover:scale-105 transition-transform">LOGIN</button>
+                <div class="flex justify-between mt-6">
+                    <button onclick="switchForm('forgot')" class="text-xs font-bold text-slate-400 uppercase hover:text-blue-600">Forgot Password?</button>
+                    <button onclick="switchForm('register')" class="text-xs font-bold text-blue-600 uppercase hover:underline">Create Account</button>
+                </div>
+            </div>
+
+            <div id="forgot-form" class="hidden">
+                <h2 class="text-2xl font-black mb-4 italic text-blue-600">Recovery</h2>
+                <div id="forgot-message" class="mb-4 hidden px-4 py-2 rounded-xl text-center font-bold"></div>
+                <input id="f-email" type="email" placeholder="Registered Email" class="w-full p-4 mb-4 bg-slate-50 border rounded-2xl outline-none">
+                <button onclick="handleForgot()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">GET OTP</button>
+                <div id="reset-area" class="hidden pt-6 border-t mt-4 space-y-3">
+                    <input id="f-token" type="text" placeholder="Enter OTP from Email" class="w-full p-4 border rounded-2xl">
+                    <input id="f-pass" type="password" placeholder="New Password" class="w-full p-4 border rounded-2xl">
+                    <button onclick="submitReset()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black">UPDATE</button>
+                </div>
+                <button onclick="switchForm('login')" class="w-full mt-4 text-[10px] font-bold text-center">BACK</button>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <h2 class="text-4xl font-extrabold mb-6 italic text-green-600 flex items-center gap-2"><i class="fas fa-user-plus text-3xl"></i>Register</h2>
+                <div id="register-message" class="mb-4 hidden px-4 py-2 rounded-xl text-center font-bold"></div>
+                <div class="space-y-4 mb-6">
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-4 top-4 text-slate-400"></i>
+                        <input id="r-name" type="text" placeholder="Name" class="w-full pl-12 p-4 bg-slate-50 border rounded-2xl outline-none focus:border-green-600">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute left-4 top-4 text-slate-400"></i>
+                        <input id="r-email" type="email" placeholder="Email" class="w-full pl-12 p-4 bg-slate-50 border rounded-2xl outline-none focus:border-green-600">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-phone absolute left-4 top-4 text-slate-400"></i>
+                        <input id="r-mobile" type="tel" maxlength="10" placeholder="Mobile (10 digits)" class="w-full pl-12 p-4 bg-slate-50 border rounded-2xl outline-none focus:border-green-600">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-4 text-slate-400"></i>
+                        <input id="r-pass" type="password" placeholder="Password" class="w-full pl-12 p-4 bg-slate-50 border rounded-2xl outline-none focus:border-green-600">
+                    </div>
+                </div>
+                <button onclick="register()" class="w-full bg-gradient-to-r from-green-600 to-green-400 text-white py-4 rounded-2xl font-black shadow-lg hover:scale-105 transition-transform">Join</button>
+                <button onclick="switchForm('login')" class="w-full mt-4 text-xs font-bold text-center hover:underline">BACK</button>
+            </div>
         </div>
 
-        <div id="dashboard" class="hidden">
-            <div class="bg-blue-50 p-6 rounded-lg mb-6 border border-blue-200">
-                <h2 class="text-2xl font-bold text-blue-800">Your Daily Suggestion</h2>
-                <p id="suggestion-text" class="text-lg mt-2 text-blue-600"></p>
-            </div>
+        <div id="view-dashboard" class="hidden max-w-3xl mx-auto mt-10 bg-white p-10 rounded-3xl shadow-xl border text-center">
+            <h2 class="text-3xl font-black text-blue-600 italic">This is user home page.</h2>
+        </div>
 
-            <h3 class="text-xl font-bold mb-4">Available Products</h3>
-            <div id="product-list" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                </div>
-            
-            <div class="mt-10 p-6 bg-white rounded shadow text-right">
-                <button onclick="checkout()" class="bg-orange-500 text-white px-8 py-3 rounded-full font-bold hover:bg-orange-600">Checkout & Get Invoice</button>
-            </div>
+        <div id="view-admin" class="hidden max-w-3xl mx-auto mt-10 bg-white p-10 rounded-3xl shadow-xl border text-center">
+            <h2 class="text-3xl font-black text-slate-900 italic">This is admin panel.</h2>
         </div>
     </div>
 
     <script>
-        let currentUserId = null;
-        let cart = [];
+        let user = null;
+
+        function showView(v) {
+            ['view-auth', 'view-dashboard', 'view-admin'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('view-' + v).classList.remove('hidden');
+        }
+
+        function switchForm(v) {
+            ['login-form', 'register-form', 'forgot-form'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById(v + '-form').classList.remove('hidden');
+        }
+
+        function showMessage(id, msg, type = 'error') {
+            const el = document.getElementById(id);
+            el.innerText = msg;
+            el.classList.remove('hidden');
+            el.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700', 'bg-blue-100', 'text-blue-700');
+            if (type === 'error') el.classList.add('bg-red-100', 'text-red-700');
+            else if (type === 'success') el.classList.add('bg-green-100', 'text-green-700');
+            else if (type === 'info') el.classList.add('bg-blue-100', 'text-blue-700');
+        }
+
+        function hideMessage(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
 
         async function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
+            hideMessage('login-message');
             const res = await fetch('/login', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, password })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                })
             });
-
             const data = await res.json();
             if (res.ok) {
-                currentUserId = data.user_id;
-                document.getElementById('auth-section').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                document.getElementById('user-info').classList.remove('hidden');
-                document.getElementById('user-info').innerText = "Target: " + data.daily_protein_target + "g";
-                document.getElementById('suggestion-text').innerText = data.suggestion;
-                loadProducts();
+                user = data.user;
+                document.getElementById('nav-links').classList.remove('hidden');
+                showView(user.is_admin ? 'admin' : 'dashboard');
             } else {
-                alert(data.message);
+                showMessage('login-message', data.message, 'error');
             }
         }
 
-        async function loadProducts() {
-            const res = await fetch('/products');
-            const products = await res.json();
-            const list = document.getElementById('product-list');
-            list.innerHTML = '';
-            products.forEach(p => {
-                list.innerHTML += `
-                    <div class="bg-white p-4 rounded shadow border">
-                        <h4 class="font-bold">${p.name}</h4>
-                        <p class="text-gray-600">${p.protein}g Protein</p>
-                        <p class="text-blue-600 font-bold">₹${p.price}</p>
-                        <button onclick="addToCart(${p.id})" class="mt-2 bg-gray-200 px-4 py-1 rounded hover:bg-gray-300 text-sm">Add to Cart</button>
-                    </div>
-                `;
-            });
-        }
-
-        function addToCart(id) {
-            cart.push(id);
-            alert("Added to cart! Current items: " + cart.length);
-        }
-
-        async function checkout() {
-            if (cart.length === 0) return alert("Cart is empty!");
-            
-            const res = await fetch('/checkout', {
+        async function handleForgot() {
+            hideMessage('forgot-message');
+            const res = await fetch('/forgot-password', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ user_id: currentUserId, product_ids: cart })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: document.getElementById('f-email').value })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showMessage('forgot-message', data.message || 'OTP sent to your email!', 'success');
+                document.getElementById('reset-area').classList.remove('hidden');
+                document.getElementById('f-token').value = '';
+            } else {
+                showMessage('forgot-message', data.message, 'error');
+            }
+        }
+
+        async function submitReset() {
+            const email = document.getElementById('f-email').value;
+            const otp = document.getElementById('f-token').value;
+            const new_password = document.getElementById('f-pass').value;
+
+            const res = await fetch('/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp, new_password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                switchForm('login');
+                showMessage('login-message', 'Password updated! Please login.', 'success');
+            } else {
+                showMessage('forgot-message', data.message, 'error');
+            }
+        }
+
+        async function register() {
+            hideMessage('register-message');
+            const name = document.getElementById('r-name').value.trim();
+            const email = document.getElementById('r-email').value.trim().toLowerCase();
+            const mobile = document.getElementById('r-mobile').value.trim();
+            const password = document.getElementById('r-pass').value;
+
+            if (!email.endsWith('@gmail.com')) {
+                showMessage('register-message', 'Invalid email', 'error');
+                return;
+            }
+            if (!/^[0-9]{10}$/.test(mobile)) {
+                showMessage('register-message', 'Invalid mobile number', 'error');
+                return;
+            }
+
+            const res = await fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, mobile, password })
             });
 
-            const data = await res.json();
-            alert(data.status + "\nTotal Protein: " + data.invoice.total_protein_gained + "g\nPrice: ₹" + data.invoice.total_price);
-            cart = [];
+            if (res.ok) {
+                switchForm('login');
+                showMessage('login-message', 'Registered successfully! Please login.', 'success');
+            } else {
+                const data = await res.json();
+                showMessage('register-message', data.message || 'Registration failed.', 'error');
+            }
         }
     </script>
 </body>
