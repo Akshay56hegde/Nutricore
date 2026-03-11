@@ -1,0 +1,672 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCore Store</title>
+<meta name="description" content="Buy whey protein, isolate, plant protein, mass gainers, and recovery supplements at NutriCore. Search products by brand, type, price, and rating.">
+<meta name="keywords" content="protein supplements, whey protein, isolate protein, mass gainer, plant protein, NutriCore store">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="/homepage.html">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "NutriCore Store",
+  "url": "/homepage.html",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "/homepage.html?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
+<style>
+body{
+background:#0f172a;
+color:white;
+font-family:Arial;
+}
+
+.card{
+background:#1e293b;
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-6px);
+}
+
+.btn{
+background:#22c55e;
+}
+
+.btn:hover{
+background:#16a34a;
+}
+
+.calc-hero{
+background:linear-gradient(90deg,#020617 0%,#11183a 45%,#4b4f63 100%);
+}
+
+.cart-count{
+position:absolute;
+top:-8px;
+right:-6px;
+font-size:11px;
+background:#ef4444;
+color:#fff;
+border-radius:999px;
+min-width:18px;
+height:18px;
+padding:0 5px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:700;
+}
+
+.cart-overlay{
+position:fixed;
+inset:0;
+background:rgba(2,6,23,0.7);
+z-index:40;
+}
+
+.cart-drawer{
+position:fixed;
+top:0;
+right:0;
+height:100vh;
+width:min(420px, 100%);
+background:#111827;
+border-left:1px solid #334155;
+z-index:50;
+display:flex;
+flex-direction:column;
+}
+
+.drawer-card{
+background:#1e293b;
+border:1px solid #334155;
+}
+</style>
+</head>
+
+<body>
+<nav class="bg-black/50 backdrop-blur border-b border-slate-800 px-10 py-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+<div class="flex items-center gap-6 justify-self-start">
+<h1 class="text-2xl font-black text-green-400">NUTRICORE</h1>
+</div>
+
+<form id="searchForm" class="relative w-[560px] max-w-[55vw]" action="/homepage.html" method="get">
+<input id="searchInput" name="q" type="text" placeholder="Search for protein products..." class="w-full px-5 py-2 rounded-full text-black">
+<button id="searchBtn" type="submit" class="absolute right-2 top-1 bg-green-500 px-4 py-1 rounded-full" aria-label="Search">
+<i class="fa fa-search text-white"></i>
+</button>
+</form>
+
+<div class="flex items-center gap-4 text-2xl justify-self-end">
+<button id="cartBtn" class="relative hover:text-green-400 bg-slate-800/60 border border-slate-700 w-11 h-11 rounded-xl flex items-center justify-center" aria-label="Cart">
+<i class="fa fa-shopping-cart"></i>
+<span id="cartCount" class="cart-count">0</span>
+</button>
+
+<div class="relative group">
+<button class="hover:text-green-400 bg-slate-800/60 border border-slate-700 w-11 h-11 rounded-xl flex items-center justify-center" aria-label="User menu">
+<i class="fa fa-user"></i>
+</button>
+
+<div class="absolute hidden group-hover:block bg-slate-800 right-0 mt-3 p-6 rounded-xl text-lg min-w-[280px] border border-slate-700 space-y-3 z-20">
+<p class="hover:text-green-400">My Orders</p>
+<p class="hover:text-green-400">Account</p>
+<p class="hover:text-green-400">Wishlist</p>
+<p id="logoutBtn" class="hover:text-red-400 cursor-pointer">Logout</p>
+</div>
+</div>
+</div>
+</nav>
+
+<div id="cartOverlay" class="cart-overlay hidden"></div>
+<aside id="cartDrawer" class="cart-drawer translate-x-full transition-transform duration-300">
+<div class="p-4 border-b border-slate-700 flex items-center justify-between">
+<h3 class="text-xl font-bold">Your Cart</h3>
+<button id="closeDrawerBtn" class="bg-slate-700 px-3 py-1 rounded">Close</button>
+</div>
+
+<div class="p-4 border-b border-slate-700 flex items-center justify-between">
+<p class="text-slate-300">Items: <span id="drawerItems">0</span></p>
+<button id="clearDrawerCartBtn" class="bg-red-600 px-3 py-1 rounded hover:bg-red-500">Clear</button>
+</div>
+
+<div id="drawerCartList" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+
+<div class="p-4 border-t border-slate-700 space-y-2">
+<p class="text-slate-200">Total Protein: <span id="drawerProtein" class="font-bold">0.0g</span></p>
+<p class="text-slate-200">Subtotal: <span id="drawerSubtotal" class="font-bold">₹0.00</span></p>
+<button id="drawerCheckoutBtn" class="btn w-full py-3 rounded-lg font-bold">Proceed to Checkout</button>
+</div>
+</aside>
+
+<div class="p-10">
+<section class="calc-hero rounded-3xl p-8 md:p-10 mb-12">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+<div class="max-w-xl mx-auto md:mx-0">
+<h2 class="text-4xl font-black leading-tight">Personalized Protein Calculator</h2>
+<p class="text-xl text-slate-200 mt-5 leading-relaxed">Not sure how much protein you need? Our advanced calculator helps you determine the perfect daily intake based on your fitness goals and body composition.</p>
+<button onclick="openCalculator()" class="mt-8 px-8 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl font-bold text-xl">Try Calculator Now</button>
+</div>
+
+<div class="bg-slate-500/40 border border-slate-400/20 rounded-2xl min-h-[300px] md:min-h-[360px] flex flex-col items-center justify-center text-center">
+<i class="fa fa-bolt text-5xl text-emerald-400 mb-5"></i>
+<p class="text-3xl text-slate-100">Optimize Your Nutrition</p>
+</div>
+</div>
+</section>
+
+<section class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 mb-8">
+<div class="flex flex-wrap items-end gap-4">
+<div class="min-w-[180px] flex-1">
+<label class="text-sm text-gray-400">Price</label>
+<select id="priceFilter" class="w-full mt-2 p-2 rounded text-black">
+<option value="low-high">Price: Low to High</option>
+<option value="high-low">Price: High to Low</option>
+<option value="custom">Custom Price Range</option>
+</select>
+
+<div id="customPriceRange" class="hidden mt-3 grid grid-cols-2 gap-2">
+<input id="minPrice" type="number" min="0" placeholder="Min price" class="w-full p-2 rounded text-black">
+<input id="maxPrice" type="number" min="0" placeholder="Max price" class="w-full p-2 rounded text-black">
+</div>
+</div>
+
+<div class="min-w-[180px] flex-1">
+<label class="text-sm text-gray-400">Brand</label>
+<select id="brandFilter" class="w-full mt-2 p-2 rounded text-black">
+<option value="">All Brands</option>
+<option>Optimum Nutrition</option>
+<option>MyProtein</option>
+<option>BSN</option>
+<option>Dymatize</option>
+<option>NutriCore</option>
+</select>
+</div>
+
+<div class="min-w-[180px] flex-1">
+<label class="text-sm text-gray-400">Protein Type</label>
+<select id="typeFilter" class="w-full mt-2 p-2 rounded text-black">
+<option value="">All Types</option>
+<option>Whey</option>
+<option>Isolate</option>
+<option>Plant</option>
+<option>Mass Gainer</option>
+<option>Casein</option>
+</select>
+</div>
+
+<div class="min-w-[180px] flex-1">
+<label class="text-sm text-gray-400">Top Rated</label>
+<select id="ratingFilter" class="w-full mt-2 p-2 rounded text-black">
+<option value="">All Ratings</option>
+<option value="4.5">4.5 Stars & Up</option>
+<option value="4">4 Stars & Up</option>
+<option value="4.8">Top Rated Only</option>
+</select>
+</div>
+
+<button id="applyFiltersBtn" class="btn py-2 px-6 rounded h-[42px]">Apply Filters</button>
+</div>
+</section>
+
+<h2 class="text-3xl font-bold mb-8">All Products</h2>
+<p id="productStatus" class="text-slate-300 mb-5">Loading products...</p>
+<div id="productGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 items-stretch"></div>
+</div>
+
+<footer class="mt-14 border-t border-slate-800 bg-slate-950/60 px-10 py-6">
+<div class="text-base text-slate-300 text-center">
+<p>NutriCore. All rights reserved.</p>
+</div>
+</footer>
+
+<script>
+const CART_KEY = 'nutricore_cart';
+const USER_KEY = 'nutricore_user';
+const TOKEN_KEY = 'nutricore_token';
+const FALLBACK_IMAGE = '/images/products/placeholder.svg';
+
+const priceFilter = document.getElementById('priceFilter');
+const customPriceRange = document.getElementById('customPriceRange');
+const brandFilter = document.getElementById('brandFilter');
+const typeFilter = document.getElementById('typeFilter');
+const ratingFilter = document.getElementById('ratingFilter');
+const minPriceInput = document.getElementById('minPrice');
+const maxPriceInput = document.getElementById('maxPrice');
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const searchForm = document.getElementById('searchForm');
+const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+const productGrid = document.getElementById('productGrid');
+const productStatus = document.getElementById('productStatus');
+const cartBtn = document.getElementById('cartBtn');
+const cartCountEl = document.getElementById('cartCount');
+const logoutBtn = document.getElementById('logoutBtn');
+const cartDrawer = document.getElementById('cartDrawer');
+const cartOverlay = document.getElementById('cartOverlay');
+const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+const drawerCartList = document.getElementById('drawerCartList');
+const drawerItems = document.getElementById('drawerItems');
+const drawerProtein = document.getElementById('drawerProtein');
+const drawerSubtotal = document.getElementById('drawerSubtotal');
+const clearDrawerCartBtn = document.getElementById('clearDrawerCartBtn');
+const drawerCheckoutBtn = document.getElementById('drawerCheckoutBtn');
+
+let currentProducts = [];
+let searchDebounceTimer = null;
+
+function openCalculator(){
+alert('Protein calculator page will open next step');
+}
+
+function toggleCustomPriceRange(){
+if(priceFilter.value === 'custom'){
+customPriceRange.classList.remove('hidden');
+}else{
+customPriceRange.classList.add('hidden');
+minPriceInput.value = '';
+maxPriceInput.value = '';
+}
+}
+
+function getCart(){
+try {
+return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+} catch (e) {
+return [];
+}
+}
+
+function saveCart(cart){
+localStorage.setItem(CART_KEY, JSON.stringify(cart));
+updateCartCount();
+renderCartDrawer();
+if(currentProducts.length){
+renderProducts(currentProducts);
+}
+}
+
+function updateCartCount(){
+const totalQty = getCart().reduce((sum, item) => sum + item.qty, 0);
+cartCountEl.textContent = String(totalQty);
+}
+
+function addToCart(product){
+const cart = getCart();
+const existing = cart.find(item => item.id === product.id);
+if(existing){
+existing.qty += 1;
+}else{
+cart.push({
+id: product.id,
+name: product.name,
+price: Number(product.price || 0),
+protein: Number(product.protein || 0),
+qty: 1
+});
+}
+saveCart(cart);
+}
+
+function getItemQty(productId){
+const item = getCart().find((p) => p.id === productId);
+return item ? item.qty : 0;
+}
+
+function setItemQty(product, qty){
+const cart = getCart();
+const idx = cart.findIndex((item) => item.id === product.id);
+
+if(qty <= 0){
+if(idx >= 0){
+cart.splice(idx, 1);
+}
+}else if(idx >= 0){
+cart[idx].qty = qty;
+}else{
+cart.push({
+id: product.id,
+name: product.name,
+price: Number(product.price || 0),
+protein: Number(product.protein || 0),
+qty: qty
+});
+}
+
+saveCart(cart);
+}
+
+function renderStars(rating){
+const value = Number(rating || 0);
+if (value >= 4.8) return '★★★★★';
+if (value >= 4.5) return '★★★★☆';
+if (value >= 4.0) return '★★★★☆';
+return '★★★☆☆';
+}
+
+function resolveProductImage(url){
+const raw = String(url || '').trim();
+if(!raw) return FALLBACK_IMAGE;
+if(raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:') || raw.startsWith('/')){
+return raw;
+}
+
+const normalized = raw.replaceAll('\\', '/');
+if(normalized.startsWith('images/')){
+return `/${normalized}`;
+}
+
+const fileName = normalized.split('/').pop();
+return fileName ? `/images/products/${fileName}` : FALLBACK_IMAGE;
+}
+
+function renderProducts(products){
+currentProducts = products;
+productGrid.innerHTML = '';
+if(!products.length){
+productStatus.textContent = 'No products found for selected filters.';
+return;
+}
+
+productStatus.textContent = `Showing ${products.length} product(s)`;
+
+products.forEach((p) => {
+const qty = getItemQty(p.id);
+const actionHtml = qty > 0
+? `<div class="flex items-center gap-2">
+<button class="btn px-3 py-1 rounded qty-minus" data-id="${p.id}" aria-label="Decrease quantity">-</button>
+<span class="font-bold min-w-[20px] text-center qty-value">${qty}</span>
+<button class="btn px-3 py-1 rounded qty-plus" data-id="${p.id}" aria-label="Increase quantity">+</button>
+</div>`
+: `<button class="btn px-4 py-1 rounded add-btn" data-id="${p.id}">Add</button>`;
+
+const card = document.createElement('div');
+card.className = 'card rounded-xl overflow-hidden h-full flex flex-col';
+card.innerHTML = `
+<img src="${resolveProductImage(p.image_url)}" class="w-full h-56 object-cover" alt="${p.name}" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'">
+<div class="p-5 flex-1 flex flex-col">
+<h3 class="font-bold">${p.name}</h3>
+<p class="text-slate-300 text-sm">${p.brand || 'NutriCore'} • ${p.protein_type || 'Whey'}</p>
+<p class="text-green-400 text-sm">${Number(p.protein || 0)}g protein</p>
+<p class="text-yellow-400 text-sm">${renderStars(p.rating)} (${Number(p.rating || 0).toFixed(1)})</p>
+<div class="flex justify-between items-center mt-auto pt-3">
+<span class="text-green-400 font-bold">₹${Number(p.price || 0).toFixed(2)}</span>
+${actionHtml}
+</div>
+</div>
+`;
+
+const addBtn = card.querySelector('.add-btn');
+if(addBtn){
+addBtn.addEventListener('click', () => {
+setItemQty(p, 1);
+});
+}
+
+const plusBtn = card.querySelector('.qty-plus');
+if(plusBtn){
+plusBtn.addEventListener('click', () => {
+const currentQty = getItemQty(p.id);
+setItemQty(p, currentQty + 1);
+});
+}
+
+const minusBtn = card.querySelector('.qty-minus');
+if(minusBtn){
+minusBtn.addEventListener('click', () => {
+const currentQty = getItemQty(p.id);
+setItemQty(p, currentQty - 1);
+});
+}
+
+productGrid.appendChild(card);
+});
+}
+
+function openCartDrawer(){
+cartOverlay.classList.remove('hidden');
+cartDrawer.classList.remove('translate-x-full');
+}
+
+function closeCartDrawer(){
+cartOverlay.classList.add('hidden');
+cartDrawer.classList.add('translate-x-full');
+}
+
+function renderCartDrawer(){
+const cart = getCart();
+drawerCartList.innerHTML = '';
+
+if(!cart.length){
+drawerCartList.innerHTML = '<div class="drawer-card rounded-xl p-4 text-slate-300">Your cart is empty. Add products to continue.</div>';
+drawerItems.textContent = '0';
+drawerProtein.textContent = '0.0g';
+drawerSubtotal.textContent = '₹0.00';
+drawerCheckoutBtn.disabled = true;
+drawerCheckoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+return;
+}
+
+drawerCheckoutBtn.disabled = false;
+drawerCheckoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+let totalItems = 0;
+let totalProtein = 0;
+let subtotal = 0;
+
+cart.forEach((item) => {
+totalItems += item.qty;
+totalProtein += Number(item.protein || 0) * item.qty;
+subtotal += Number(item.price || 0) * item.qty;
+
+const row = document.createElement('div');
+row.className = 'drawer-card rounded-xl p-3';
+row.innerHTML = `
+<p class="font-bold">${item.name}</p>
+<p class="text-sm text-slate-300">₹${Number(item.price || 0).toFixed(2)} each • ${Number(item.protein || 0)}g protein</p>
+<div class="mt-2 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<button class="bg-slate-700 px-3 py-1 rounded item-minus">-</button>
+<span class="min-w-[20px] text-center font-bold">${item.qty}</span>
+<button class="bg-slate-700 px-3 py-1 rounded item-plus">+</button>
+</div>
+<button class="bg-red-600 px-3 py-1 rounded item-remove">Remove</button>
+</div>
+`;
+
+row.querySelector('.item-minus').addEventListener('click', () => {
+const product = {
+id: item.id,
+name: item.name,
+price: item.price,
+protein: item.protein
+};
+setItemQty(product, item.qty - 1);
+});
+
+row.querySelector('.item-plus').addEventListener('click', () => {
+const product = {
+id: item.id,
+name: item.name,
+price: item.price,
+protein: item.protein
+};
+setItemQty(product, item.qty + 1);
+});
+
+row.querySelector('.item-remove').addEventListener('click', () => {
+const product = {
+id: item.id,
+name: item.name,
+price: item.price,
+protein: item.protein
+};
+setItemQty(product, 0);
+});
+
+drawerCartList.appendChild(row);
+});
+
+drawerItems.textContent = String(totalItems);
+drawerProtein.textContent = `${totalProtein.toFixed(1)}g`;
+drawerSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
+}
+
+async function fetchProducts(){
+const params = new URLSearchParams();
+const sort = priceFilter.value === 'custom' ? 'low-high' : priceFilter.value;
+params.set('sort', sort || 'low-high');
+
+if(brandFilter.value) params.set('brand', brandFilter.value);
+if(typeFilter.value) params.set('protein_type', typeFilter.value);
+if(ratingFilter.value) params.set('min_rating', ratingFilter.value);
+if(searchInput.value.trim()) params.set('q', searchInput.value.trim());
+if(priceFilter.value === 'custom'){
+if(minPriceInput.value) params.set('min_price', minPriceInput.value);
+if(maxPriceInput.value) params.set('max_price', maxPriceInput.value);
+}
+
+productStatus.textContent = 'Loading products...';
+
+try {
+const res = await fetch(`/products?${params.toString()}`);
+const data = await res.json();
+if(!res.ok){
+throw new Error(data.message || 'Failed to load products');
+}
+syncUrlFromFilters(params);
+renderProducts(Array.isArray(data) ? data : []);
+} catch (err) {
+productGrid.innerHTML = '';
+productStatus.textContent = 'Unable to load products right now.';
+}
+}
+
+function syncUrlFromFilters(params){
+const url = new URL(window.location.href);
+url.search = params.toString();
+window.history.replaceState({}, '', url.toString());
+}
+
+function hydrateFiltersFromUrl(){
+const params = new URLSearchParams(window.location.search);
+
+if(params.get('q')) searchInput.value = params.get('q');
+if(params.get('brand')) brandFilter.value = params.get('brand');
+if(params.get('protein_type')) typeFilter.value = params.get('protein_type');
+if(params.get('min_rating')) ratingFilter.value = params.get('min_rating');
+
+const minPrice = params.get('min_price');
+const maxPrice = params.get('max_price');
+if(minPrice || maxPrice){
+priceFilter.value = 'custom';
+if(minPrice) minPriceInput.value = minPrice;
+if(maxPrice) maxPriceInput.value = maxPrice;
+} else if(params.get('sort')) {
+priceFilter.value = params.get('sort');
+}
+}
+
+async function checkoutCart(){
+const cart = getCart();
+if(!cart.length){
+alert('Your cart is empty.');
+return;
+}
+
+const user = JSON.parse(localStorage.getItem(USER_KEY) || 'null');
+if(!user || !user.id){
+alert('Please login again to continue checkout.');
+window.location.href = '/login.html';
+return;
+}
+
+const productIds = [];
+cart.forEach(item => {
+for(let i = 0; i < item.qty; i += 1){
+productIds.push(item.id);
+}
+});
+
+const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+const summary = cart.map(item => `${item.name} x${item.qty}`).join('\n');
+const shippingAddress = prompt('Enter delivery address for this order:');
+if(!shippingAddress || !shippingAddress.trim()){
+alert('Delivery address is required.');
+return;
+}
+
+const paymentMode = prompt('Enter payment mode (UPI / Card / COD):', 'UPI') || 'UPI';
+const paymentStatus = paymentMode.trim().toUpperCase() === 'COD' ? 'Pending' : 'Paid';
+const proceed = confirm(`Cart total: ₹${total.toFixed(2)}\nPayment mode: ${paymentMode}\nPayment status: ${paymentStatus}\n\n${summary}\n\nProceed to checkout?`);
+if(!proceed) return;
+
+try {
+const res = await fetch('/checkout', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({
+user_id: user.id,
+product_ids: productIds,
+shipping_address: shippingAddress.trim(),
+payment_mode: paymentMode.trim() || 'UPI',
+payment_status: paymentStatus
+})
+});
+const data = await res.json();
+if(!res.ok){
+throw new Error(data.message || 'Checkout failed');
+}
+alert(`Payment Successful\nOrder: ${data.invoice.order_number}\nTotal: ₹${Number(data.invoice.total_price || 0).toFixed(2)}\nProtein gained: ${Number(data.invoice.total_protein_gained || 0).toFixed(1)}g`);
+saveCart([]);
+} catch (err) {
+alert(err.message || 'Checkout failed. Try again.');
+}
+}
+
+priceFilter.addEventListener('change', toggleCustomPriceRange);
+applyFiltersBtn.addEventListener('click', fetchProducts);
+searchForm.addEventListener('submit', (e) => {
+e.preventDefault();
+fetchProducts();
+});
+searchInput.addEventListener('input', () => {
+clearTimeout(searchDebounceTimer);
+searchDebounceTimer = setTimeout(fetchProducts, 300);
+});
+cartBtn.addEventListener('click', () => {
+openCartDrawer();
+});
+closeDrawerBtn.addEventListener('click', closeCartDrawer);
+cartOverlay.addEventListener('click', closeCartDrawer);
+clearDrawerCartBtn.addEventListener('click', () => saveCart([]));
+drawerCheckoutBtn.addEventListener('click', checkoutCart);
+logoutBtn.addEventListener('click', () => {
+localStorage.removeItem(USER_KEY);
+localStorage.removeItem(CART_KEY);
+localStorage.removeItem(TOKEN_KEY);
+window.location.href = '/login.html';
+});
+
+toggleCustomPriceRange();
+updateCartCount();
+renderCartDrawer();
+hydrateFiltersFromUrl();
+fetchProducts();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCore Admin Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+body{
+background:#0f172a;
+color:#fff;
+font-family:Arial, Helvetica, sans-serif;
+}
+
+.panel-card{
+background:rgba(15,23,42,0.92);
+border:1px solid #334155;
+box-shadow:0 20px 45px rgba(2,6,23,0.35);
+}
+
+.hero-shell{
+background:linear-gradient(110deg,#020617 0%,#0f172a 45%,#1e293b 100%);
+}
+
+.accent-btn{
+background:#22c55e;
+}
+
+.accent-btn:hover{
+background:#16a34a;
+}
+
+.muted-btn{
+background:#1e293b;
+border:1px solid #334155;
+}
+
+.muted-btn:hover{
+background:#334155;
+}
+
+.pill{
+border:1px solid #334155;
+background:rgba(30,41,59,0.85);
+}
+
+.status-paid{
+color:#4ade80;
+}
+
+.status-pending{
+color:#facc15;
+}
+
+.thin-scroll::-webkit-scrollbar{
+width:10px;
+height:10px;
+}
+
+.thin-scroll::-webkit-scrollbar-track{
+background:#0f172a;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb{
+background:#334155;
+border-radius:999px;
+}
+</style>
+</head>
+<body>
+<nav class="bg-black/45 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<a href="/landingpage.html" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
+<span class="hidden md:inline text-slate-400">Admin Command Center</span>
+</div>
+
+<div class="flex items-center gap-3">
+<a href="/homepage.html" class="muted-btn px-4 py-2 rounded-xl text-sm">View Store</a>
+<button id="logoutBtn" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-sm font-bold">Logout</button>
+</div>
+</nav>
+
+<main class="p-6 md:p-10 space-y-8">
+<section class="hero-shell rounded-[28px] p-6 md:p-8 border border-slate-800">
+<div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+<div class="max-w-3xl">
+<p class="text-green-400 text-sm font-bold uppercase tracking-[0.3em]">Operations</p>
+<h1 class="text-4xl md:text-5xl font-black mt-3">Admin panel for products, customers, and order alerts.</h1>
+<p class="text-slate-300 mt-4 text-lg leading-relaxed">Track live orders, manage the store catalog, and review each user's purchase and intake history from one place.</p>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full lg:w-auto">
+<div class="panel-card rounded-2xl p-4 min-w-[150px]">
+<p class="text-slate-400 text-sm">Users</p>
+<p id="statUsers" class="text-3xl font-black mt-2">0</p>
+</div>
+<div class="panel-card rounded-2xl p-4 min-w-[150px]">
+<p class="text-slate-400 text-sm">Products</p>
+<p id="statProducts" class="text-3xl font-black mt-2">0</p>
+</div>
+<div class="panel-card rounded-2xl p-4 min-w-[150px]">
+<p class="text-slate-400 text-sm">Orders</p>
+<p id="statOrders" class="text-3xl font-black mt-2">0</p>
+</div>
+<div class="panel-card rounded-2xl p-4 min-w-[150px]">
+<p class="text-slate-400 text-sm">Alerts</p>
+<p id="statAlerts" class="text-3xl font-black mt-2">0</p>
+</div>
+</div>
+</div>
+</section>
+
+<section class="grid grid-cols-1 xl:grid-cols-[1.15fr_0.85fr] gap-8">
+<div class="panel-card rounded-[26px] p-6">
+<div class="flex items-center justify-between gap-4 mb-5">
+<div>
+<h2 class="text-2xl font-black">Product Management</h2>
+<p class="text-slate-400">Add new products and remove current products from the live store list.</p>
+</div>
+<button id="refreshProductsBtn" class="muted-btn px-4 py-2 rounded-xl text-sm">Refresh</button>
+</div>
+
+<form id="addProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+<input id="productName" type="text" placeholder="Product name" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="productBrand" type="text" placeholder="Brand" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="productProtein" type="number" min="0" step="0.1" placeholder="Protein per serving (g)" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="productPrice" type="number" min="0" step="0.01" placeholder="Price" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="productType" type="text" placeholder="Protein type" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="productImage" type="text" placeholder="Image URL or /images/products/file" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<div class="md:col-span-2 flex items-center gap-3">
+<button type="submit" class="accent-btn px-5 py-3 rounded-xl font-bold">Add Product</button>
+<p id="productFormMessage" class="text-sm text-slate-300"></p>
+</div>
+</form>
+
+<div id="productList" class="grid grid-cols-1 md:grid-cols-2 gap-4 thin-scroll max-h-[700px] overflow-auto"></div>
+</div>
+
+<div class="panel-card rounded-[26px] p-6">
+<div class="flex items-center justify-between gap-4 mb-5">
+<div>
+<h2 class="text-2xl font-black">Order Notifications</h2>
+<p class="text-slate-400">New purchases appear here with customer, address, and payment details.</p>
+</div>
+<button id="refreshOrdersBtn" class="muted-btn px-4 py-2 rounded-xl text-sm">Refresh</button>
+</div>
+
+<div id="notificationSummary" class="pill rounded-2xl p-4 mb-5">
+<p class="text-slate-300 text-sm">Unread alerts</p>
+<p id="notificationCount" class="text-3xl font-black mt-2">0</p>
+</div>
+
+<div id="orderList" class="space-y-4 max-h-[760px] overflow-auto thin-scroll"></div>
+</div>
+</section>
+
+<section class="panel-card rounded-[26px] p-6">
+<div class="flex items-center justify-between gap-4 mb-5">
+<div>
+<h2 class="text-2xl font-black">Users And History</h2>
+<p class="text-slate-400">Browse registered users, then open each card to inspect intake logs and order history.</p>
+</div>
+<button id="refreshUsersBtn" class="muted-btn px-4 py-2 rounded-xl text-sm">Refresh</button>
+</div>
+
+<div class="mb-5">
+<input id="userSearchInput" type="text" placeholder="Browse users by name, email, or mobile" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+</div>
+
+<div id="userList" class="grid grid-cols-1 lg:grid-cols-2 gap-5"></div>
+</section>
+</main>
+
+<script>
+const USER_KEY = 'nutricore_user';
+const TOKEN_KEY = 'nutricore_token';
+const ADMIN_EMAIL = 'nutricoreadmin@gmail.com';
+
+const state = {
+products: [],
+orders: [],
+users: [],
+userSearch: ''
+};
+
+function safeParse(value){
+try{
+return JSON.parse(value || 'null');
+}catch(error){
+return null;
+}
+}
+
+const user = safeParse(localStorage.getItem(USER_KEY));
+const token = localStorage.getItem(TOKEN_KEY) || '';
+
+if(!user || !user.is_admin || user.email !== ADMIN_EMAIL || !token){
+window.location.href = '/login.html';
+}
+
+function authHeaders(extra = {}){
+return {
+'Content-Type': 'application/json',
+'Authorization': `Bearer ${token}`,
+...extra
+};
+}
+
+async function fetchJson(url, options = {}){
+const response = await fetch(url, options);
+const data = await response.json();
+if(!response.ok){
+throw new Error(data.message || 'Request failed');
+}
+return data;
+}
+
+function formatCurrency(value){
+return `Rs ${Number(value || 0).toFixed(2)}`;
+}
+
+function formatDate(value){
+if(!value) return 'Unknown time';
+const date = new Date(value);
+return date.toLocaleString('en-IN', {
+dateStyle: 'medium',
+timeStyle: 'short'
+});
+}
+
+function getStatusClass(status){
+return String(status || '').toLowerCase() === 'paid' ? 'status-paid' : 'status-pending';
+}
+
+function escapeHtml(value){
+return String(value || '')
+.replaceAll('&', '&amp;')
+.replaceAll('<', '&lt;')
+.replaceAll('>', '&gt;')
+.replaceAll('"', '&quot;')
+.replaceAll("'", '&#39;');
+}
+
+async function loadStats(){
+const stats = await fetchJson('/admin/stats', {
+headers: authHeaders()
+});
+document.getElementById('statUsers').textContent = stats.total_users || 0;
+document.getElementById('statProducts').textContent = stats.total_products || 0;
+document.getElementById('statOrders').textContent = stats.total_orders || 0;
+document.getElementById('statAlerts').textContent = stats.pending_notifications || 0;
+}
+
+async function loadProducts(){
+state.products = await fetchJson('/products');
+renderProducts();
+}
+
+async function loadOrders(){
+state.orders = await fetchJson('/admin/orders', {
+headers: authHeaders()
+});
+renderOrders();
+}
+
+async function loadUsers(){
+state.users = await fetchJson('/admin/users', {
+headers: authHeaders()
+});
+renderUsers();
+}
+
+function renderProducts(){
+const productList = document.getElementById('productList');
+if(!state.products.length){
+productList.innerHTML = '<div class="pill rounded-2xl p-5 text-slate-300 md:col-span-2">No products found.</div>';
+return;
+}
+
+productList.innerHTML = state.products.map((product) => `
+<article class="pill rounded-2xl p-4 flex gap-4">
+<img src="${escapeHtml(product.image_url || '/images/products/placeholder.svg')}" alt="${escapeHtml(product.name)}" class="w-24 h-24 rounded-2xl object-cover bg-slate-900" onerror="this.onerror=null;this.src='/images/products/placeholder.svg'">
+<div class="flex-1">
+<div class="flex items-start justify-between gap-3">
+<div>
+<h3 class="font-bold text-lg leading-tight">${escapeHtml(product.name)}</h3>
+<p class="text-slate-400 text-sm">${escapeHtml(product.brand || 'NutriCore')} - ${escapeHtml(product.protein_type || 'Whey')}</p>
+</div>
+<button class="bg-red-600 hover:bg-red-500 px-3 py-2 rounded-xl text-sm font-bold" onclick="removeProduct(${product.id})">Remove</button>
+</div>
+<div class="mt-3 flex flex-wrap gap-2 text-sm">
+<span class="pill px-3 py-1 rounded-full">${Number(product.protein || 0)}g protein</span>
+<span class="pill px-3 py-1 rounded-full">${formatCurrency(product.price)}</span>
+<span class="pill px-3 py-1 rounded-full">${product.rating ? `${Number(product.rating).toFixed(1)} rating` : 'Awaiting user ratings'}</span>
+</div>
+</div>
+</article>
+`).join('');
+}
+
+function renderOrders(){
+const orderList = document.getElementById('orderList');
+const unreadOrders = state.orders.filter(order => !order.admin_notified);
+document.getElementById('notificationCount').textContent = unreadOrders.length;
+
+if(!state.orders.length){
+orderList.innerHTML = '<div class="pill rounded-2xl p-5 text-slate-300">No orders yet.</div>';
+return;
+}
+
+orderList.innerHTML = state.orders.map((order) => {
+const itemLabels = (order.items || []).map(item => `${item.name}`).join(', ') || 'No items';
+return `
+<article class="pill rounded-2xl p-4 ${order.admin_notified ? 'opacity-80' : 'ring-1 ring-green-500/40'}">
+<div class="flex items-start justify-between gap-3">
+<div>
+<p class="text-green-400 font-bold">${escapeHtml(order.order_number)}</p>
+<h3 class="text-lg font-black mt-1">${escapeHtml(order.user_name)}</h3>
+<p class="text-slate-400 text-sm">${escapeHtml(order.user_email || '')}</p>
+</div>
+<button class="${order.admin_notified ? 'muted-btn' : 'accent-btn'} px-3 py-2 rounded-xl text-sm font-bold" onclick="markOrderRead(${order.id})">
+${order.admin_notified ? 'Reviewed' : 'Mark Read'}
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 text-sm">
+<div>
+<p class="text-slate-400">Address</p>
+<p>${escapeHtml(order.shipping_address || 'Not provided')}</p>
+</div>
+<div>
+<p class="text-slate-400">Payment</p>
+<p>${escapeHtml(order.payment_mode || 'Unknown')} - <span class="${getStatusClass(order.payment_status)} font-bold">${escapeHtml(order.payment_status || 'Pending')}</span></p>
+</div>
+<div>
+<p class="text-slate-400">Items</p>
+<p>${escapeHtml(itemLabels)}</p>
+</div>
+<div>
+<p class="text-slate-400">Total</p>
+<p>${formatCurrency(order.total_price)} - ${Number(order.item_count || 0)} items</p>
+</div>
+</div>
+<p class="text-slate-500 text-xs mt-4">${formatDate(order.timestamp)}</p>
+</article>
+`;
+}).join('');
+}
+
+function renderUsers(){
+const userList = document.getElementById('userList');
+const query = state.userSearch.trim().toLowerCase();
+const visibleUsers = state.users.filter((customer) => {
+if(!query) return true;
+return [customer.name, customer.email, customer.mobile]
+.filter(Boolean)
+.some((value) => String(value).toLowerCase().includes(query));
+});
+
+if(!visibleUsers.length){
+userList.innerHTML = '<div class="pill rounded-2xl p-5 text-slate-300 lg:col-span-2">No registered users found.</div>';
+return;
+}
+
+userList.innerHTML = visibleUsers.map((customer) => {
+const intakeHistory = customer.history.length
+? customer.history.slice(0, 5).map(item => `<li>${escapeHtml(item.product_name)} - ${Number(item.protein_consumed || 0)}g</li>`).join('')
+: '<li>No intake logs yet.</li>';
+
+const orderHistory = customer.orders.length
+? customer.orders.slice(0, 3).map(order => `<li>${escapeHtml(order.order_number)} - ${formatCurrency(order.total_price)} - ${escapeHtml(order.payment_status)}</li>`).join('')
+: '<li>No orders yet.</li>';
+
+return `
+<article class="pill rounded-2xl p-5">
+<div class="flex items-start justify-between gap-4">
+<div>
+<h3 class="text-xl font-black">${escapeHtml(customer.name)}</h3>
+<p class="text-slate-400 text-sm">${escapeHtml(customer.email)}</p>
+<p class="text-slate-500 text-sm">${escapeHtml(customer.mobile || 'No mobile')} - Weight ${Number(customer.weight || 0)} kg - Target ${Number(customer.target || 0).toFixed(1)} g</p>
+</div>
+<div class="flex items-center gap-3">
+<span class="pill px-3 py-1 rounded-full text-sm">${customer.orders.length} orders</span>
+<button class="muted-btn px-3 py-2 rounded-xl text-sm" data-browse-user="${customer.id}">Browse</button>
+</div>
+</div>
+
+<div id="user-details-${customer.id}" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+<div class="bg-slate-950/70 rounded-2xl p-4 border border-slate-800">
+<p class="font-bold mb-3">Recent Intake</p>
+<ul class="space-y-2 text-sm text-slate-300">${intakeHistory}</ul>
+</div>
+<div class="bg-slate-950/70 rounded-2xl p-4 border border-slate-800">
+<p class="font-bold mb-3">Recent Orders</p>
+<ul class="space-y-2 text-sm text-slate-300">${orderHistory}</ul>
+</div>
+</div>
+</article>
+`;
+}).join('');
+
+document.querySelectorAll('[data-browse-user]').forEach((button) => {
+button.addEventListener('click', () => {
+const userId = button.getAttribute('data-browse-user');
+const details = document.getElementById(`user-details-${userId}`);
+const isHidden = details.classList.contains('hidden');
+details.classList.toggle('hidden', !isHidden);
+button.textContent = isHidden ? 'Hide' : 'Browse';
+});
+});
+}
+
+async function refreshAll(){
+try{
+await Promise.all([loadStats(), loadProducts(), loadOrders(), loadUsers()]);
+}catch(error){
+alert(error.message || 'Failed to load admin data.');
+if(String(error.message || '').toLowerCase().includes('session')){
+logout();
+}
+}
+}
+
+async function addProduct(event){
+event.preventDefault();
+const payload = {
+name: document.getElementById('productName').value.trim(),
+brand: document.getElementById('productBrand').value.trim() || 'NutriCore',
+protein: Number(document.getElementById('productProtein').value || 0),
+price: Number(document.getElementById('productPrice').value || 0),
+protein_type: document.getElementById('productType').value.trim() || 'Whey',
+image_url: document.getElementById('productImage').value.trim()
+};
+
+const messageEl = document.getElementById('productFormMessage');
+messageEl.textContent = 'Saving product...';
+
+try{
+await fetchJson('/admin/add-product', {
+method: 'POST',
+headers: authHeaders(),
+body: JSON.stringify(payload)
+});
+document.getElementById('addProductForm').reset();
+messageEl.textContent = 'Product added successfully.';
+await Promise.all([loadProducts(), loadStats()]);
+}catch(error){
+messageEl.textContent = error.message || 'Unable to add product.';
+}
+}
+
+async function removeProduct(productId){
+const confirmed = confirm('Remove this product from the site?');
+if(!confirmed) return;
+
+try{
+await fetchJson(`/admin/delete-product/${productId}`, {
+method: 'DELETE',
+headers: authHeaders()
+});
+await Promise.all([loadProducts(), loadStats()]);
+}catch(error){
+alert(error.message || 'Unable to remove product.');
+}
+}
+
+async function markOrderRead(orderId){
+try{
+await fetchJson(`/admin/orders/${orderId}/mark-read`, {
+method: 'POST',
+headers: authHeaders()
+});
+await Promise.all([loadOrders(), loadStats(), loadUsers()]);
+}catch(error){
+alert(error.message || 'Unable to update notification.');
+}
+}
+
+function logout(){
+localStorage.removeItem(USER_KEY);
+localStorage.removeItem(TOKEN_KEY);
+window.location.href = '/login.html';
+}
+
+document.getElementById('addProductForm').addEventListener('submit', addProduct);
+document.getElementById('refreshProductsBtn').addEventListener('click', () => Promise.all([loadProducts(), loadStats()]));
+document.getElementById('refreshOrdersBtn').addEventListener('click', () => Promise.all([loadOrders(), loadStats(), loadUsers()]));
+document.getElementById('refreshUsersBtn').addEventListener('click', loadUsers);
+document.getElementById('userSearchInput').addEventListener('input', (event) => {
+state.userSearch = event.target.value || '';
+renderUsers();
+});
+document.getElementById('logoutBtn').addEventListener('click', logout);
+
+refreshAll();
+setInterval(() => {
+loadOrders().catch(() => {});
+loadStats().catch(() => {});
+}, 15000);
+</script>
+</body>
+</html>

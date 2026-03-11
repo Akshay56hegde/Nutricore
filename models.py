@@ -23,6 +23,9 @@ class Product(db.Model):
     protein_per_serving = db.Column(db.Float)
     price = db.Column(db.Float)
     brand = db.Column(db.String(50))
+    protein_type = db.Column(db.String(50))
+    rating = db.Column(db.Float)
+    image_url = db.Column(db.String(500))
 
 class IntakeLog(db.Model):
     __tablename__ = "intake_logs"
@@ -37,5 +40,10 @@ class Order(db.Model):
     order_number = db.Column(db.String(20), unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     total_price = db.Column(db.Float)
+    item_count = db.Column(db.Integer, default=0)
     payment_mode = db.Column(db.String(50))
+    payment_status = db.Column(db.String(50), default="Pending")
+    shipping_address = db.Column(db.Text)
+    items_summary = db.Column(db.Text)
+    admin_notified = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)

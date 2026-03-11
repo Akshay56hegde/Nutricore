@@ -1,0 +1,389 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCore Protein</title>
+<style>
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    background: #0f172a;
+    color: white;
+}
+
+.container {
+    width: 90%;
+    margin: auto;
+}
+
+header {
+    background: #020617;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.logo {
+    color: #22c55e;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.menu {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+    padding: 0;
+}
+
+.menu a {
+    color: white;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.cta {
+    background: #22c55e;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.hero {
+    height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+        url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438");
+    background-size: cover;
+    background-position: center;
+}
+
+.hero h2 {
+    font-size: 50px;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    max-width: 600px;
+    margin: auto;
+}
+
+.primary-btn {
+    margin-top: 25px;
+    padding: 15px 35px;
+    background: #22c55e;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.benefits {
+    padding: 80px 0;
+    text-align: center;
+}
+
+.benefit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.card {
+    background: #1e293b;
+    padding: 30px;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+}
+
+.products {
+    padding: 80px 0;
+    text-align: center;
+    position: relative;
+}
+
+.products h2 {
+    margin: 0 0 14px;
+}
+
+.arrow-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: #1e293b;
+    color: #e2e8f0;
+    font-size: 20px;
+    cursor: pointer;
+    position: absolute;
+    top: 55%;
+    transform: translateY(-50%);
+    z-index: 2;
+}
+
+.arrow-btn:hover {
+    background: #334155;
+}
+
+.arrow-left {
+    left: 12px;
+}
+
+.arrow-right {
+    right: 12px;
+}
+
+.product-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    gap: 30px;
+    padding: 10px 4px 16px;
+}
+
+.product-grid::-webkit-scrollbar {
+    height: 10px;
+}
+
+.product-grid::-webkit-scrollbar-track {
+    background: #0f172a;
+    border-radius: 999px;
+}
+
+.product-grid::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 999px;
+}
+
+.product-grid::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+.product {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    flex: 0 0 280px;
+    min-width: 280px;
+    scroll-snap-align: start;
+}
+
+.view-more-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: #162033;
+    border: 1px solid #334155;
+}
+
+.view-more-card p {
+    margin: 10px 0 18px;
+    color: #cbd5e1;
+}
+
+.product img {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.product button {
+    margin-top: 10px;
+    background: #22c55e;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background: #020617;
+    margin-top: 50px;
+}
+
+@media (max-width: 768px) {
+    .menu {
+        gap: 12px;
+    }
+
+    .hero h2 {
+        font-size: 36px;
+    }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="container nav">
+<div class="logo">NutriCore</div>
+<ul class="menu">
+<li><a href="#benefits">Benefits</a></li>
+<li><a href="#products">All Products</a></li>
+<li><a href="#products">Calculator</a></li>
+</ul>
+<button class="cta">Log in</button>
+</div>
+</header>
+
+<section class="hero">
+<div>
+<h2>Build Strength With Clean Protein</h2>
+<p>
+Premium protein supplements designed for muscle growth, recovery, and daily nutrition.
+</p>
+<button class="primary-btn">Explore Products</button>
+</div>
+</section>
+
+<section id="benefits" class="benefits">
+<h2>Why Choose NutriCore</h2>
+<div class="container benefit-grid">
+<div class="card">
+<h3>High Quality Protein</h3>
+<p>Scientifically designed supplements for performance and muscle recovery.</p>
+</div>
+<div class="card">
+<h3>Clean Ingredients</h3>
+<p>No harmful fillers. Just pure nutrition.</p>
+</div>
+<div class="card">
+<h3>Fast Absorption</h3>
+<p>Supports faster muscle repair after workouts.</p>
+</div>
+<div class="card">
+<h3>Trusted Nutrition</h3>
+<p>Loved by athletes and fitness enthusiasts.</p>
+</div>
+</div>
+</section>
+
+<section id="products" class="products">
+<h2>Popular Products</h2>
+<button class="arrow-btn arrow-left" aria-label="Scroll left">&#8592;</button>
+<button class="arrow-btn arrow-right" aria-label="Scroll right">&#8594;</button>
+
+<div id="productRow" class="container product-grid">
+<div class="product">
+<img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e" alt="Whey Protein">
+<h3>Whey Protein</h3>
+<p>Rs 1999</p>
+<button>Add to Cart</button>
+</div>
+
+<div class="product">
+<img src="https://images.unsplash.com/photo-1622484212850-eb596d769edc" alt="Mass Gainer">
+<h3>Mass Gainer</h3>
+<p>Rs 2499</p>
+<button>Add to Cart</button>
+</div>
+
+<div class="product">
+<img src="https://images.unsplash.com/photo-1605296867304-46d5465a13f1" alt="Plant Protein">
+<h3>Plant Protein</h3>
+<p>Rs 1799</p>
+<button>Add to Cart</button>
+</div>
+
+<div class="product">
+<img src="https://images.unsplash.com/photo-1579722821273-0f6c7d44362f" alt="Isolate Protein">
+<h3>Isolate Protein</h3>
+<p>Rs 2799</p>
+<button>Add to Cart</button>
+</div>
+
+<div class="product">
+<img src="https://images.unsplash.com/photo-1518611012118-696072aa579a" alt="Casein Protein">
+<h3>Casein Protein</h3>
+<p>Rs 2399</p>
+<button>Add to Cart</button>
+</div>
+
+<div class="product">
+<img src="https://images.unsplash.com/photo-1549570652-97324981a6fd" alt="Pre Workout">
+<h3>Pre Workout</h3>
+<p>Rs 1499</p>
+<button>Add to Cart</button>
+</div>
+
+<div class="product">
+<img src="https://images.unsplash.com/photo-1521804906057-1df8fdb718b7" alt="BCAA Recovery">
+<h3>BCAA Recovery</h3>
+<p>Rs 1299</p>
+<button>Add to Cart</button>
+</div>
+
+<div class="product">
+<img src="https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a" alt="Creatine Monohydrate">
+<h3>Creatine Monohydrate</h3>
+<p>Rs 999</p>
+<button>Add to Cart</button>
+</div>
+
+<div class="product view-more-card">
+<h3>Want More Options?</h3>
+<p>Browse the full supplement range.</p>
+<button>View More</button>
+</div>
+</div>
+</section>
+
+<footer>
+<p>&copy; 2026 NutriCore Protein. All rights reserved.</p>
+</footer>
+
+<script>
+function goToLogin() {
+    window.location.href = "/login.html";
+}
+
+function scrollProductRow(direction){
+    var row = document.getElementById("productRow");
+    var card = row ? row.querySelector(".product") : null;
+    var step = card ? card.offsetWidth + 30 : 320;
+    row.scrollBy({
+        left: direction * step,
+        behavior: "smooth"
+    });
+}
+
+document.querySelector(".arrow-left").addEventListener("click", function () {
+    scrollProductRow(-1);
+});
+
+document.querySelector(".arrow-right").addEventListener("click", function () {
+    scrollProductRow(1);
+});
+
+document.querySelectorAll("button:not(.arrow-btn)").forEach(function (btn) {
+    btn.addEventListener("click", goToLogin);
+});
+</script>
+</body>
+</html>
