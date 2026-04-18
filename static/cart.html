@@ -3,153 +3,331 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NutriCore Cart</title>
+<title>NutriCore Cart Review</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
-body{
-background:#0f172a;
-color:#fff;
-font-family:Arial, Helvetica, sans-serif;
-}
-.card{
-background:#1e293b;
-}
-.btn{
-background:#22c55e;
-}
-.btn:hover{
-background:#16a34a;
+body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
+.card{background:#111827;border:1px solid #334155}
+.btn-primary{background:#22c55e}
+.btn-primary:hover{background:#16a34a}
+.btn-secondary{background:#1e293b;border:1px solid #334155}
+.btn-secondary:hover{background:#263548}
+.step{background:#162033;border:1px solid #334155}
+.step.active{background:#16351d;border-color:#22c55e;color:#bbf7d0}
+.offer-card{background:#0f172a;border:1px solid #334155;transition:.2s ease}
+.offer-card:hover{border-color:#475569;transform:translateY(-1px)}
+.offer-card.applied{border-color:#22c55e;background:rgba(20,83,45,.18)}
+.reward-shell{position:relative;overflow:hidden}
+.reward-shell.burst .reward-particle{animation:pop 900ms ease-out forwards}
+.reward-particle{position:absolute;width:10px;height:10px;border-radius:999px;opacity:0;transform:translate(0,0) scale(.2)}
+.reward-particle.one{top:18%;left:20%;background:#facc15}
+.reward-particle.two{top:22%;right:18%;background:#fb7185}
+.reward-particle.three{bottom:24%;left:28%;background:#60a5fa}
+.reward-particle.four{bottom:18%;right:26%;background:#34d399}
+.reward-particle.five{top:50%;left:12%;background:#f472b6}
+.reward-particle.six{top:48%;right:12%;background:#f59e0b}
+@keyframes pop{
+0%{opacity:0;transform:translate(0,0) scale(.2)}
+15%{opacity:1}
+100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.4)}
 }
 </style>
 </head>
 <body>
-<nav class="bg-black/50 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between">
-<h1 class="text-2xl font-black text-green-400">NUTRICORE</h1>
-<div class="flex items-center gap-3">
-<a href="/homepage.html" class="bg-slate-800 px-4 py-2 rounded-lg hover:bg-slate-700">Continue Shopping</a>
-<button id="clearCartBtn" class="bg-red-600 px-4 py-2 rounded-lg hover:bg-red-500">Clear Cart</button>
+<nav class="bg-black/45 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+<div class="flex items-center gap-4">
+<h1 class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</h1>
+</div>
+<div class="hidden md:flex items-center justify-center gap-3 text-sm">
+<span class="step active px-4 py-2 rounded-full font-bold">Cart</span>
+<i class="fa fa-chevron-right text-slate-600"></i>
+<span class="step px-4 py-2 rounded-full text-slate-300">Address & Payment</span>
+<i class="fa fa-chevron-right text-slate-600"></i>
+<span class="step px-4 py-2 rounded-full text-slate-300">Invoice & History</span>
+</div>
+<div class="flex items-center justify-end gap-3">
+<a href="/homepage.html" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Continue Shopping</a>
+<button id="logoutBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Logout</button>
 </div>
 </nav>
 
-<main class="max-w-6xl mx-auto p-6 md:p-10">
-<h2 class="text-3xl font-bold mb-6">Your Cart</h2>
-<p id="statusText" class="text-slate-300 mb-4">Loading cart...</p>
-
-<div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-<section id="cartList" class="space-y-4"></section>
-
-<aside class="card rounded-xl p-5 h-fit border border-slate-700">
-<h3 class="text-xl font-bold mb-4">Order Summary</h3>
-<div class="space-y-2 text-slate-200">
-<p>Total Items: <span id="sumItems" class="font-bold">0</span></p>
-<p>Total Protein: <span id="sumProtein" class="font-bold">0g</span></p>
-<p>Subtotal: <span id="sumPrice" class="font-bold">₹0.00</span></p>
+<main class="max-w-7xl mx-auto px-5 md:px-8 py-8">
+<div class="flex items-end justify-between gap-4 mb-8">
+<div>
+<h2 class="text-3xl md:text-4xl font-black">My Cart</h2>
+<p id="cartStatus" class="text-slate-400 mt-2">Loading cart...</p>
 </div>
-<button id="checkoutBtn" class="btn w-full mt-5 py-3 rounded-lg font-bold">Proceed to Checkout</button>
+<button id="clearCartBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Clear Cart</button>
+</div>
+
+<div class="grid xl:grid-cols-[1.2fr_0.8fr] gap-8 items-start">
+<section class="space-y-6">
+<div id="freeDeliveryBanner" class="hidden bg-green-500/10 text-green-200 border border-green-500/20 rounded-2xl px-5 py-4 font-bold"></div>
+<div id="cartList" class="space-y-4"></div>
+</section>
+
+<aside class="card rounded-[24px] p-6 xl:sticky xl:top-6">
+<h3 class="text-2xl font-black">Order Summary</h3>
+<div class="space-y-4 mt-6 text-[15px]">
+<div class="flex items-center justify-between text-slate-300"><span>Items</span><span id="summaryItems">0</span></div>
+<div class="flex items-center justify-between text-slate-300"><span>Subtotal</span><span id="summarySubtotal">Rs. 0.00</span></div>
+<div class="flex items-center justify-between text-slate-300"><span>Discount</span><span id="summaryDiscount" class="text-green-400">- Rs. 0.00</span></div>
+<div class="flex items-center justify-between text-slate-300"><span>Shipping</span><span id="summaryShipping">Rs. 0.00</span></div>
+<div class="flex items-center justify-between text-slate-300"><span>Total Protein</span><span id="summaryProtein">0.0g</span></div>
+<div class="border-t border-slate-800 pt-4 flex items-center justify-between text-lg font-black"><span>Total</span><span id="summaryGrandTotal">Rs. 0.00</span></div>
+<div class="flex items-center justify-between text-green-300 font-bold"><span>You Save</span><span id="summarySaved">Rs. 0.00</span></div>
+</div>
+
+<button id="continueBtn" class="btn-primary w-full mt-8 py-4 rounded-2xl font-black text-lg">Continue to Checkout</button>
+
+<div class="mt-6 pt-6 border-t border-slate-800">
+<h4 class="text-lg font-black">Apply Coupon</h4>
+<p class="text-sm text-slate-400 mt-1">Enter a coupon code here.</p>
+<div class="flex gap-3 mt-4">
+<input id="couponInput" type="text" placeholder="Enter coupon code" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 uppercase">
+<button id="applyCouponBtn" class="btn-primary px-5 py-3 rounded-xl font-bold flex items-center gap-2">
+<span id="applyCouponBtnText">Apply</span>
+<span id="applyCouponBtnClose" class="hidden text-white/90 text-sm leading-none">&times;</span>
+</button>
+</div>
+
+<div id="couponCelebration" class="hidden reward-shell mt-4 rounded-2xl border border-green-500/25 bg-gradient-to-br from-green-500/12 via-emerald-500/10 to-yellow-400/10 p-5">
+<div class="reward-particle one" style="--x:-18px;--y:-24px"></div>
+<div class="reward-particle two" style="--x:20px;--y:-22px"></div>
+<div class="reward-particle three" style="--x:-22px;--y:24px"></div>
+<div class="reward-particle four" style="--x:24px;--y:22px"></div>
+<div class="reward-particle five" style="--x:-26px;--y:0px"></div>
+<div class="reward-particle six" style="--x:26px;--y:2px"></div>
+<div class="flex items-start gap-4 relative z-10">
+<div class="w-12 h-12 rounded-full bg-yellow-400/15 text-yellow-300 flex items-center justify-center text-xl shrink-0">
+<i class="fa fa-gift"></i>
+</div>
+<div>
+<p id="couponCelebrationText" class="font-black text-green-200"></p>
+<p id="couponCelebrationSubtext" class="text-sm text-green-100/80 mt-1">Your cart just got upgraded with a better deal.</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="mt-6 pt-6 border-t border-slate-800">
+<button id="toggleOffersBtn" class="btn-secondary w-full py-3 rounded-2xl font-bold flex items-center justify-between gap-3">
+<span>View Offers & Coupons</span>
+<i id="offersChevron" class="fa fa-chevron-down"></i>
+</button>
+
+<div id="couponPanel" class="hidden mt-4 space-y-3">
+<button class="coupon-pick offer-card w-full rounded-2xl p-4 text-left flex items-center justify-between gap-4" data-code="SAVE10">
+<div>
+<p class="font-black">SAVE10</p>
+<p class="text-sm text-slate-400 mt-1">10% off up to Rs. 400</p>
+</div>
+<span class="text-green-400 font-bold text-sm">Apply</span>
+</button>
+<button class="coupon-pick offer-card w-full rounded-2xl p-4 text-left flex items-center justify-between gap-4" data-code="FIT20">
+<div>
+<p class="font-black">FIT20</p>
+<p class="text-sm text-slate-400 mt-1">20% off above Rs. 3000</p>
+</div>
+<span class="text-green-400 font-bold text-sm">Apply</span>
+</button>
+<button class="coupon-pick offer-card w-full rounded-2xl p-4 text-left flex items-center justify-between gap-4" data-code="FREESHIP">
+<div>
+<p class="font-black">FREESHIP</p>
+<p class="text-sm text-slate-400 mt-1">Free delivery on this order</p>
+</div>
+<span class="text-green-400 font-bold text-sm">Apply</span>
+</button>
+</div>
+</div>
+
+<div id="rightMessage" class="hidden mt-6 rounded-2xl px-4 py-4 text-sm font-bold"></div>
 </aside>
 </div>
 </main>
 
 <script>
-const CART_KEY = 'nutricore_cart';
+const CART_KEY='nutricore_cart';
+const USER_KEY='nutricore_user';
+const TOKEN_KEY='nutricore_token';
+const CHECKOUT_STATE_KEY='nutricore_checkout_state';
+const LAST_INVOICE_KEY='nutricore_last_invoice';
+const coupons={SAVE10:{description:'10% off up to Rs. 400',apply:(subtotal)=>Math.min(subtotal*.10,400)},FIT20:{description:'20% off above Rs. 3000',apply:(subtotal)=>subtotal>=3000?subtotal*.20:0},FREESHIP:{description:'Free shipping on this order',apply:()=>0}};
+const productCatalog=new Map();
 
-function getCart(){
+function getUser(){try{return JSON.parse(localStorage.getItem(USER_KEY)||'null')}catch(e){return null}}
+function getCart(){try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){return []}}
+function saveCart(cart){localStorage.setItem(CART_KEY,JSON.stringify(cart));renderCart()}
+function getCheckoutState(){try{return JSON.parse(localStorage.getItem(CHECKOUT_STATE_KEY)||'{}')}catch(e){return {}}}
+function saveCheckoutState(next){localStorage.setItem(CHECKOUT_STATE_KEY,JSON.stringify(next))}
+function clearClientSession(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(CART_KEY);localStorage.removeItem(CHECKOUT_STATE_KEY);localStorage.removeItem(LAST_INVOICE_KEY)}
+function formatCurrency(value){return `Rs. ${Number(value||0).toFixed(2)}`}
+function escapeHtml(text){return String(text||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;")}
+function resolveProductImage(url){const raw=String(url||'').trim();if(!raw)return '/images/products/placeholder.svg';if(raw.startsWith('http://')||raw.startsWith('https://')||raw.startsWith('data:')||raw.startsWith('/'))return raw;const normalized=raw.replaceAll('\\','/');if(normalized.startsWith('images/'))return `/${normalized}`;const fileName=normalized.split('/').pop();return fileName?`/images/products/${fileName}`:'/images/products/placeholder.svg'}
+function warmCartImages(items){return}
+
+const state={appliedCoupon:getCheckoutState().coupon||''};
+
+function getCartMetrics(){const cart=getCart();let subtotal=0,totalItems=0,totalProtein=0;cart.forEach((item)=>{subtotal+=Number(item.price||0)*Number(item.qty||0);totalItems+=Number(item.qty||0);totalProtein+=Number(item.protein||0)*Number(item.qty||0)});let shipping=subtotal===0?0:(subtotal>999?0:49);let discount=0;const coupon=coupons[state.appliedCoupon];if(coupon){discount=coupon.apply(subtotal);if(state.appliedCoupon==='FREESHIP'){shipping=0}}return{cart,subtotal,totalItems,totalProtein,shipping,discount,grandTotal:Math.max(subtotal-discount+shipping,0)}}
+
+function setRightMessage(message,isError){
+const el=document.getElementById('rightMessage');
+if(!message){el.classList.add('hidden');el.textContent='';return}
+el.className=`rounded-2xl px-4 py-4 text-sm font-bold ${isError?'bg-red-500/10 border border-red-500/30 text-red-300':'bg-green-500/10 border border-green-500/30 text-green-300'}`;
+el.textContent=message;
+el.classList.remove('hidden');
+}
+
+function setQty(id,nextQty){const cart=getCart();const idx=cart.findIndex((item)=>String(item.id)===String(id));if(idx<0)return;if(nextQty<=0){cart.splice(idx,1)}else{cart[idx].qty=nextQty}saveCart(cart)}
+
+async function enrichCartWithImages(){
+const cart=getCart();
+const missing=cart.filter((item)=>!String(item.image_url||'').trim());
+if(!missing.length)return;
 try{
-return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+if(!productCatalog.size){
+const res=await fetch('/products');
+const data=await res.json();
+if(res.ok&&Array.isArray(data)){
+data.forEach((product)=>productCatalog.set(String(product.id),product));
+}
+}
+let changed=false;
+cart.forEach((item)=>{
+if(!String(item.image_url||'').trim()){
+const product=productCatalog.get(String(item.id));
+if(product&&product.image_url){
+item.image_url=product.image_url;
+changed=true;
+}
+}
+});
+if(changed){
+localStorage.setItem(CART_KEY,JSON.stringify(cart));
+}
 }catch(e){
-return [];
 }
 }
 
-function saveCart(cart){
-localStorage.setItem(CART_KEY, JSON.stringify(cart));
-renderCart();
-}
-
-function setQty(id, nextQty){
-const cart = getCart();
-const idx = cart.findIndex((item) => item.id === id);
-if(idx < 0) return;
-if(nextQty <= 0){
-cart.splice(idx, 1);
-}else{
-cart[idx].qty = nextQty;
-}
-saveCart(cart);
-}
-
-function removeItem(id){
-const cart = getCart().filter((item) => item.id !== id);
-saveCart(cart);
+function renderSummary(){
+const metrics=getCartMetrics();
+document.getElementById('summaryItems').textContent=String(metrics.totalItems);
+document.getElementById('summarySubtotal').textContent=formatCurrency(metrics.subtotal);
+document.getElementById('summaryDiscount').textContent=`- ${formatCurrency(metrics.discount)}`;
+document.getElementById('summaryShipping').textContent=metrics.shipping===0?'FREE':formatCurrency(metrics.shipping);
+document.getElementById('summaryProtein').textContent=`${metrics.totalProtein.toFixed(1)}g`;
+document.getElementById('summaryGrandTotal').textContent=formatCurrency(metrics.grandTotal);
+document.getElementById('summarySaved').textContent=formatCurrency(metrics.discount+(metrics.shipping===0&&metrics.subtotal>0?49:0));
+const banner=document.getElementById('freeDeliveryBanner');
+if(metrics.totalItems&&metrics.shipping===0){banner.textContent='This order qualifies for complimentary delivery.';banner.classList.remove('hidden')}
+else if(metrics.totalItems){banner.textContent='Delivery is complimentary on orders above Rs. 999. A standard delivery fee of Rs. 49 applies below this value.';banner.classList.remove('hidden')}
+else{banner.classList.add('hidden')}
 }
 
 function renderCart(){
-const cart = getCart();
-const cartList = document.getElementById('cartList');
-const statusText = document.getElementById('statusText');
-const checkoutBtn = document.getElementById('checkoutBtn');
-
-cartList.innerHTML = '';
-if(!cart.length){
-statusText.textContent = 'Your cart is empty.';
-checkoutBtn.disabled = true;
-checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+const metrics=getCartMetrics();
+const cartList=document.getElementById('cartList');
+const cartStatus=document.getElementById('cartStatus');
+if(!metrics.cart.length){
+cartStatus.textContent='Your cart is empty.';
+cartList.innerHTML=`<div class="card rounded-[24px] p-8 text-center"><i class="fa fa-bag-shopping text-4xl text-slate-500"></i><h4 class="text-2xl font-black mt-4">No items in your cart</h4><p class="text-slate-400 mt-2">Add products from the store to continue.</p><a href="/homepage.html" class="inline-flex mt-6 btn-primary px-6 py-3 rounded-xl font-bold">Browse Products</a></div>`;
 }else{
-statusText.textContent = `${cart.length} product(s) in cart`;
-checkoutBtn.disabled = false;
-checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+cartStatus.textContent=`Quick Basket (${metrics.totalItems})`;
+cartList.innerHTML=metrics.cart.map((item)=>`<article class="card rounded-[24px] p-5"><div class="flex flex-col lg:flex-row lg:items-center gap-5"><div class="w-24 h-24 rounded-3xl bg-slate-950 border border-slate-700 overflow-hidden shrink-0"><img src="${resolveProductImage(item.image_url)}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/images/products/placeholder.svg'"></div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="bg-green-500/15 text-green-300 border border-green-500/20 px-3 py-1 rounded-full text-xs font-bold">Quick Delivery</span></div><h4 class="text-xl font-black mt-3">${escapeHtml(item.name)}</h4><p class="text-slate-400 mt-2">${Number(item.protein||0).toFixed(1)}g protein per unit</p><p class="text-green-400 font-bold mt-3">${formatCurrency(item.price)} each</p></div><div class="flex flex-col sm:flex-row sm:items-center gap-4"><div class="flex items-center gap-3"><button class="btn-secondary w-11 h-11 rounded-full qty-minus" data-id="${item.id}">-</button><span class="text-lg font-black min-w-[20px] text-center">${item.qty}</span><button class="btn-secondary w-11 h-11 rounded-full qty-plus" data-id="${item.id}">+</button></div><div class="text-left sm:text-right min-w-[120px]"><p class="text-sm text-slate-400">Line total</p><p class="text-xl font-black">${formatCurrency(Number(item.price||0)*Number(item.qty||0))}</p></div><button class="text-red-400 hover:text-red-300 font-bold remove-item" data-id="${item.id}">Remove</button></div></div></article>`).join('');
+warmCartImages(metrics.cart);
+document.querySelectorAll('.qty-minus').forEach((button)=>button.addEventListener('click',()=>{const item=metrics.cart.find((entry)=>String(entry.id)===String(button.dataset.id));if(item){setQty(item.id,item.qty-1)}}));
+document.querySelectorAll('.qty-plus').forEach((button)=>button.addEventListener('click',()=>{const item=metrics.cart.find((entry)=>String(entry.id)===String(button.dataset.id));if(item){setQty(item.id,item.qty+1)}}));
+document.querySelectorAll('.remove-item').forEach((button)=>button.addEventListener('click',()=>setQty(button.dataset.id,0)));
+}
+renderSummary();
 }
 
-let totalItems = 0;
-let totalProtein = 0;
-let totalPrice = 0;
-
-cart.forEach((item) => {
-totalItems += item.qty;
-totalProtein += (Number(item.protein || 0) * item.qty);
-totalPrice += (Number(item.price || 0) * item.qty);
-
-const row = document.createElement('article');
-row.className = 'card rounded-xl p-4 border border-slate-700 flex flex-col md:flex-row md:items-center md:justify-between gap-4';
-row.innerHTML = `
-<div>
-<h4 class="text-lg font-bold">${item.name}</h4>
-<p class="text-slate-300">${Number(item.protein || 0)}g protein each</p>
-<p class="text-green-400 font-bold">₹${Number(item.price || 0).toFixed(2)} each</p>
-</div>
-<div class="flex items-center gap-3">
-<button class="bg-slate-700 px-3 py-1 rounded qty-minus">-</button>
-<span class="font-bold min-w-[24px] text-center">${item.qty}</span>
-<button class="bg-slate-700 px-3 py-1 rounded qty-plus">+</button>
-<button class="bg-red-600 px-3 py-1 rounded remove-btn">Remove</button>
-</div>
-`;
-
-row.querySelector('.qty-minus').addEventListener('click', () => setQty(item.id, item.qty - 1));
-row.querySelector('.qty-plus').addEventListener('click', () => setQty(item.id, item.qty + 1));
-row.querySelector('.remove-btn').addEventListener('click', () => removeItem(item.id));
-cartList.appendChild(row);
-});
-
-document.getElementById('sumItems').textContent = String(totalItems);
-document.getElementById('sumProtein').textContent = `${totalProtein.toFixed(1)}g`;
-document.getElementById('sumPrice').textContent = `₹${totalPrice.toFixed(2)}`;
+function showCouponCelebration(code,description){
+const box=document.getElementById('couponCelebration');
+const text=document.getElementById('couponCelebrationText');
+const sub=document.getElementById('couponCelebrationSubtext');
+text.textContent=`Offer unlocked: ${code}`;
+sub.textContent=`${description} is now active on this order. Enjoy the savings.`;
+box.classList.remove('hidden');
+box.classList.remove('burst');
+void box.offsetWidth;
+box.classList.add('burst');
 }
 
-document.getElementById('clearCartBtn').addEventListener('click', () => {
-localStorage.removeItem(CART_KEY);
-renderCart();
+function syncOfferCards(){
+document.querySelectorAll('.coupon-pick').forEach((button)=>{
+button.classList.toggle('applied',button.dataset.code===state.appliedCoupon);
+const label=button.querySelector('span:last-child');
+if(label){label.textContent=button.dataset.code===state.appliedCoupon?'Applied':'Apply'}
 });
+document.getElementById('applyCouponBtnText').textContent=state.appliedCoupon?'Applied':'Apply';
+document.getElementById('applyCouponBtnClose').classList.toggle('hidden',!state.appliedCoupon);
+}
 
-document.getElementById('checkoutBtn').addEventListener('click', () => {
-if(!getCart().length){
-alert('Your cart is empty.');
+function removeCoupon(){
+state.appliedCoupon='';
+document.getElementById('couponInput').value='';
+document.getElementById('couponCelebration').classList.add('hidden');
+saveCheckoutState({...getCheckoutState(),coupon:''});
+syncOfferCards();
+setRightMessage('',false);
+renderSummary();
+}
+
+function applyCoupon(code){
+const normalized=String(code||'').trim().toUpperCase();
+const metrics=getCartMetrics();
+if(!metrics.cart.length){setRightMessage('Add at least one product before applying an offer.',true);return}
+if(!normalized){setRightMessage('Enter a coupon code or choose an offer below.',true);return}
+if(!coupons[normalized]){setRightMessage('That coupon code is not available right now.',true);return}
+if(normalized==='FIT20'&&metrics.subtotal<3000){setRightMessage('FIT20 works only when the subtotal is Rs. 3000 or more.',true);return}
+state.appliedCoupon=normalized;
+document.getElementById('couponInput').value=normalized;
+saveCheckoutState({...getCheckoutState(),coupon:normalized});
+syncOfferCards();
+showCouponCelebration(normalized,coupons[normalized].description);
+setRightMessage('',false);
+renderSummary();
+}
+
+function hydrateCoupon(){
+if(!state.appliedCoupon)return;
+document.getElementById('couponInput').value=state.appliedCoupon;
+syncOfferCards();
+}
+
+async function init(){
+const user=getUser();
+if(!user||!user.id||!localStorage.getItem(TOKEN_KEY)){window.location.href='/login.html';return}
+document.getElementById('applyCouponBtn').addEventListener('click',()=>{
+if(state.appliedCoupon){
+removeCoupon();
 return;
 }
-alert('Checkout step (address/payment) will be added next.');
+applyCoupon(document.getElementById('couponInput').value);
 });
-
+document.getElementById('couponInput').addEventListener('keydown',(event)=>{if(event.key==='Enter'){event.preventDefault();applyCoupon(event.target.value)}});
+document.querySelectorAll('.coupon-pick').forEach((button)=>button.addEventListener('click',()=>applyCoupon(button.dataset.code)));
+document.getElementById('toggleOffersBtn').addEventListener('click',()=>{const panel=document.getElementById('couponPanel');const chevron=document.getElementById('offersChevron');panel.classList.toggle('hidden');chevron.classList.toggle('fa-chevron-down');chevron.classList.toggle('fa-chevron-up')});
+document.getElementById('clearCartBtn').addEventListener('click',()=>{localStorage.setItem(CART_KEY,JSON.stringify([]));renderCart();setRightMessage('Cart cleared successfully.',false)});
+document.getElementById('continueBtn').addEventListener('click',()=>{if(!getCart().length){setRightMessage('Your cart is empty. Add products before continuing.',true);return}saveCheckoutState({...getCheckoutState(),coupon:state.appliedCoupon});window.location.href='/checkout.html'});
+document.getElementById('logoutBtn').addEventListener('click',()=>{clearClientSession();window.location.replace('/login.html')});
 renderCart();
+enrichCartWithImages().then(()=>renderCart());
+hydrateCoupon();
+syncOfferCards();
+}
+
+init();
+window.addEventListener('pageshow',()=>{
+const user=getUser();
+if(!user||!user.id||!localStorage.getItem(TOKEN_KEY)){window.location.replace('/login.html');return}
+state.appliedCoupon=getCheckoutState().coupon||'';
+renderCart();
+hydrateCoupon();
+syncOfferCards();
+});
 </script>
 </body>
 </html>

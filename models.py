@@ -21,11 +21,22 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     protein_per_serving = db.Column(db.Float)
+    net_quantity = db.Column(db.String(50))
     price = db.Column(db.Float)
     brand = db.Column(db.String(50))
     protein_type = db.Column(db.String(50))
     rating = db.Column(db.Float)
     image_url = db.Column(db.String(500))
+
+class ProductRating(db.Model):
+    __tablename__ = "product_ratings"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    review = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class IntakeLog(db.Model):
     __tablename__ = "intake_logs"
@@ -47,3 +58,19 @@ class Order(db.Model):
     items_summary = db.Column(db.Text)
     admin_notified = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Offer(db.Model):
+    __tablename__ = "offers"
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(40), unique=True, nullable=False)
+    title = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text)
+    badge = db.Column(db.String(40))
+    cta_note = db.Column(db.String(160))
+    discount_type = db.Column(db.String(20))
+    discount_value = db.Column(db.Float)
+    min_order_amount = db.Column(db.Float)
+    max_discount = db.Column(db.Float)
+    condition_text = db.Column(db.String(200))
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCore Protein Calculator</title>
+<meta name="description" content="Calculate your protein target, calorie estimate, and ideal NutriCore supplement recommendation.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+body{
+background:
+radial-gradient(circle at top right, rgba(34,197,94,0.16), transparent 28%),
+radial-gradient(circle at bottom left, rgba(59,130,246,0.12), transparent 24%),
+#020617;
+color:#fff;
+font-family:Arial,sans-serif;
+}
+
+.glass-card{
+background:linear-gradient(180deg,rgba(15,23,42,0.92),rgba(15,23,42,0.78));
+border:1px solid rgba(148,163,184,0.18);
+box-shadow:0 24px 60px rgba(2,6,23,0.42);
+backdrop-filter:blur(16px);
+}
+
+.field{
+background:rgba(15,23,42,0.85);
+border:1px solid rgba(148,163,184,0.18);
+color:#fff;
+}
+
+.field:focus{
+outline:none;
+border-color:rgba(74,222,128,0.7);
+box-shadow:0 0 0 4px rgba(34,197,94,0.12);
+}
+
+.chip{
+border:1px solid rgba(74,222,128,0.25);
+background:rgba(34,197,94,0.12);
+color:#bbf7d0;
+}
+
+.stat-card{
+background:rgba(2,6,23,0.52);
+border:1px solid rgba(148,163,184,0.14);
+}
+</style>
+</head>
+<body>
+<nav class="px-6 md:px-10 py-5 flex items-center justify-between border-b border-white/10 bg-slate-950/50 backdrop-blur">
+<a href="/homepage.html" class="text-2xl font-black text-emerald-400 tracking-wide">NUTRICORE</a>
+<div class="flex items-center gap-3">
+<a href="/homepage.html" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-semibold">Store</a>
+</div>
+</nav>
+
+<main class="px-6 md:px-10 py-10 md:py-14">
+<section class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-8 items-start">
+<div class="glass-card rounded-[32px] p-7 md:p-8">
+<div class="inline-flex items-center gap-2 chip px-4 py-2 rounded-full text-sm font-semibold uppercase tracking-[0.24em]">Protein Calculator</div>
+<h1 class="text-4xl md:text-5xl font-black leading-tight mt-5">Build your personalized nutrition recommendation.</h1>
+<p class="text-slate-300 text-lg leading-relaxed mt-5 max-w-2xl">Estimate calories, define your daily protein target, and get a product fit that feels ready to buy.</p>
+
+<form id="calculatorForm" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
+<label class="block">
+<span class="text-sm text-slate-300 mb-2 block">Weight (kg)</span>
+<input id="weight" type="number" min="1" step="0.1" class="field w-full rounded-2xl px-4 py-4" placeholder="70">
+</label>
+
+<label class="block">
+<span class="text-sm text-slate-300 mb-2 block">Height (cm)</span>
+<input id="height" type="number" min="1" step="0.1" class="field w-full rounded-2xl px-4 py-4" placeholder="175">
+</label>
+
+<label class="block">
+<span class="text-sm text-slate-300 mb-2 block">Age</span>
+<input id="age" type="number" min="1" step="1" class="field w-full rounded-2xl px-4 py-4" placeholder="25">
+</label>
+
+<label class="block">
+<span class="text-sm text-slate-300 mb-2 block">Gender</span>
+<select id="gender" class="field w-full rounded-2xl px-4 py-4">
+<option value="">Select gender</option>
+<option value="Male">Male</option>
+<option value="Female">Female</option>
+</select>
+</label>
+
+<label class="block md:col-span-2">
+<span class="text-sm text-slate-300 mb-2 block">Activity Level</span>
+<select id="activity" class="field w-full rounded-2xl px-4 py-4">
+<option value="">Select activity level</option>
+<option value="Little to No Exercise">Little to No Exercise</option>
+<option value="Lightly Active">Lightly Active</option>
+<option value="Moderately Active">Moderately Active</option>
+<option value="Very Active">Very Active</option>
+</select>
+</label>
+
+<label class="block md:col-span-2">
+<span class="text-sm text-slate-300 mb-2 block">Goal</span>
+<select id="goal" class="field w-full rounded-2xl px-4 py-4">
+<option value="">Select goal</option>
+<option value="Weight Gain">Weight Gain</option>
+<option value="Muscle Gain">Muscle Gain</option>
+<option value="Weight Loss">Weight Loss</option>
+<option value="Maintenance">Maintenance</option>
+</select>
+</label>
+
+<label class="stat-card rounded-2xl p-4 flex items-center gap-3 cursor-pointer">
+<input id="isSensitive" type="checkbox" class="w-5 h-5 accent-emerald-500">
+<span>
+<span class="block font-semibold text-white">Lactose sensitive or need a lighter formula</span>
+<span class="block text-sm text-slate-400 mt-1">Helps the calculator prefer lower carb and lower fat whey options.</span>
+</span>
+</label>
+
+<label class="stat-card rounded-2xl p-4 flex items-center gap-3 cursor-pointer">
+<input id="isVegan" type="checkbox" class="w-5 h-5 accent-emerald-500">
+<span>
+<span class="block font-semibold text-white">Prefer vegan or dairy-free protein</span>
+<span class="block text-sm text-slate-400 mt-1">Switches the recommendation to a plant-based option.</span>
+</span>
+</label>
+
+<div class="md:col-span-2 flex flex-wrap gap-3 pt-2">
+<button type="submit" id="calculateBtn" class="px-7 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-lg font-bold">Calculate Plan</button>
+<button type="button" id="resetBtn" class="px-7 py-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-lg font-bold">Reset</button>
+</div>
+<p id="formMessage" class="md:col-span-2 text-sm text-rose-300 hidden"></p>
+</form>
+</div>
+
+<aside class="glass-card rounded-[32px] p-7 md:p-8 sticky top-6">
+<div id="resultEmpty" class="min-h-[640px] flex flex-col justify-center items-center text-center">
+<div class="w-24 h-24 rounded-[28px] bg-emerald-500/12 border border-emerald-400/20 flex items-center justify-center">
+<i class="fa fa-chart-line text-4xl text-emerald-300"></i>
+</div>
+<h2 class="text-3xl font-black mt-6">Your recommendation will appear here.</h2>
+<p class="text-slate-300 leading-relaxed mt-4 max-w-md">Run the calculator to unlock your calorie estimate, protein target, and the best-fit protein type for your profile.</p>
+</div>
+
+<div id="resultPanel" class="hidden">
+<div class="flex items-start justify-between gap-4">
+<div>
+<p class="text-sm uppercase tracking-[0.35em] text-emerald-300">Recommended Type</p>
+<h2 id="recommendedType" class="text-4xl font-black mt-3"></h2>
+</div>
+<div class="w-16 h-16 rounded-3xl bg-emerald-500/12 border border-emerald-400/20 flex items-center justify-center shrink-0">
+<i class="fa fa-fire text-2xl text-emerald-300"></i>
+</div>
+</div>
+
+<div class="grid grid-cols-2 gap-4 mt-8">
+<div class="stat-card rounded-2xl p-5">
+<p class="text-xs uppercase tracking-[0.26em] text-slate-400">Daily Calories</p>
+<p id="caloriesValue" class="text-3xl font-black mt-3"></p>
+</div>
+<div class="stat-card rounded-2xl p-5">
+<p class="text-xs uppercase tracking-[0.26em] text-slate-400">Protein Goal</p>
+<p id="proteinValue" class="text-3xl font-black mt-3"></p>
+</div>
+</div>
+
+<div class="mt-6 stat-card rounded-[28px] p-5">
+<p class="text-xs uppercase tracking-[0.28em] text-slate-400">Profile Summary</p>
+<div id="profileSummary" class="mt-4 flex flex-wrap gap-2"></div>
+</div>
+
+<div class="mt-6 stat-card rounded-[28px] p-5">
+<p class="text-xs uppercase tracking-[0.28em] text-slate-400">Why This Works</p>
+<div id="resultHighlights" class="mt-4 grid gap-3"></div>
+</div>
+
+<div class="mt-6 flex flex-wrap gap-3">
+<a href="/store" class="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 font-bold">Back to Store</a>
+</div>
+</div>
+</aside>
+</section>
+</main>
+
+<script>
+const CALCULATOR_PLAN_KEY = 'nutricore_calculator_plan';
+
+const calculatorForm = document.getElementById('calculatorForm');
+const formMessage = document.getElementById('formMessage');
+const calculateBtn = document.getElementById('calculateBtn');
+const resetBtn = document.getElementById('resetBtn');
+const resultEmpty = document.getElementById('resultEmpty');
+const resultPanel = document.getElementById('resultPanel');
+const recommendedType = document.getElementById('recommendedType');
+const caloriesValue = document.getElementById('caloriesValue');
+const proteinValue = document.getElementById('proteinValue');
+const profileSummary = document.getElementById('profileSummary');
+const resultHighlights = document.getElementById('resultHighlights');
+
+function hideMessage(){
+formMessage.classList.add('hidden');
+formMessage.textContent = '';
+}
+
+function showMessage(message){
+formMessage.textContent = message;
+formMessage.classList.remove('hidden');
+}
+
+function getFormPayload(){
+return {
+weight: document.getElementById('weight').value,
+height: document.getElementById('height').value,
+age: document.getElementById('age').value,
+gender: document.getElementById('gender').value,
+activity: document.getElementById('activity').value,
+goal: document.getElementById('goal').value,
+is_sensitive: document.getElementById('isSensitive').checked,
+is_vegan: document.getElementById('isVegan').checked
+};
+}
+
+function savePlan(payload){
+localStorage.setItem(CALCULATOR_PLAN_KEY, JSON.stringify(payload));
+}
+
+function readPlan(){
+try{
+return JSON.parse(localStorage.getItem(CALCULATOR_PLAN_KEY) || 'null');
+}catch(e){
+return null;
+}
+}
+
+function fillForm(inputs){
+if(!inputs){
+return;
+}
+document.getElementById('weight').value = inputs.weight ?? '';
+document.getElementById('height').value = inputs.height ?? '';
+document.getElementById('age').value = inputs.age ?? '';
+document.getElementById('gender').value = inputs.gender ?? '';
+document.getElementById('activity').value = inputs.activity ?? '';
+document.getElementById('goal').value = inputs.goal ?? '';
+document.getElementById('isSensitive').checked = Boolean(inputs.is_sensitive);
+document.getElementById('isVegan').checked = Boolean(inputs.is_vegan);
+}
+
+function renderSummary(inputs){
+const items = [
+`${inputs.weight} kg`,
+`${inputs.height} cm`,
+`${inputs.age} yrs`,
+inputs.gender,
+inputs.activity,
+inputs.goal
+];
+
+if(inputs.is_sensitive){
+items.push('Sensitive Digestion');
+}
+if(inputs.is_vegan){
+items.push('Vegan');
+}
+
+profileSummary.innerHTML = items.map((item) => `<span class="chip px-3 py-2 rounded-full text-sm font-medium">${item}</span>`).join('');
+}
+
+function renderHighlights(inputs, plan){
+const points = [
+`${plan.recommended_type || 'This protein type'} suits your ${String(inputs.goal || 'fitness').toLowerCase()} target with a daily protein goal of ${Number(plan.protein_grams || 0).toLocaleString()}g.`,
+`Your intake is supported by an estimated ${Number(plan.calories || 0).toLocaleString()} kcal per day based on your activity level.`,
+plan.reason || 'The recommendation matches your current profile and nutrition goal.'
+];
+
+if(inputs.is_vegan){
+points.push('A dairy-free preference is included in this recommendation.');
+}else if(inputs.is_sensitive){
+points.push('Digestive comfort is considered so the recommendation stays easier to tolerate.');
+}
+
+resultHighlights.innerHTML = points.map((point) => `
+<div class="flex items-start gap-3">
+<span class="mt-1 w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
+<p class="text-slate-200 leading-relaxed">${point}</p>
+</div>
+`).join('');
+}
+
+function renderResult(data){
+const inputs = data.inputs || {};
+const plan = data.plan || {};
+
+resultEmpty.classList.add('hidden');
+resultPanel.classList.remove('hidden');
+
+recommendedType.textContent = plan.recommended_type || 'Recommended Type';
+caloriesValue.textContent = `${Number(plan.calories || 0).toLocaleString()} kcal`;
+proteinValue.textContent = `${Number(plan.protein_grams || 0).toLocaleString()} g`;
+
+renderSummary(inputs);
+renderHighlights(inputs, plan);
+}
+
+async function handleSubmit(event){
+event.preventDefault();
+hideMessage();
+calculateBtn.disabled = true;
+calculateBtn.classList.add('opacity-70', 'cursor-wait');
+
+try{
+const response = await fetch('/api/calculator', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(getFormPayload())
+});
+
+const data = await response.json();
+if(!response.ok){
+throw new Error(data.message || 'Unable to calculate your plan right now.');
+}
+
+savePlan(data);
+renderResult(data);
+}catch(error){
+showMessage(error.message || 'Unable to calculate your plan right now.');
+}finally{
+calculateBtn.disabled = false;
+calculateBtn.classList.remove('opacity-70', 'cursor-wait');
+}
+}
+
+function handleReset(){
+calculatorForm.reset();
+hideMessage();
+resultPanel.classList.add('hidden');
+resultEmpty.classList.remove('hidden');
+profileSummary.innerHTML = '';
+resultHighlights.innerHTML = '';
+localStorage.removeItem(CALCULATOR_PLAN_KEY);
+}
+
+calculatorForm.addEventListener('submit', handleSubmit);
+resetBtn.addEventListener('click', handleReset);
+
+const savedPlan = readPlan();
+if(savedPlan){
+fillForm(savedPlan.inputs);
+renderResult(savedPlan);
+}
+</script>
+</body>
+</html>

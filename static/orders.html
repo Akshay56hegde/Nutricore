@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCore Order History</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+body{
+background:#0f172a;
+color:#ffffff;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+.panel{
+background:#111827;
+border:1px solid #334155;
+box-shadow:0 18px 42px rgba(2,6,23,0.24);
+}
+
+.order-card{
+background:linear-gradient(180deg,#111827 0%,#0f172a 100%);
+border:1px solid #334155;
+transition:transform 0.2s ease,border-color 0.2s ease,box-shadow 0.2s ease;
+}
+
+.order-card:hover{
+transform:translateY(-3px);
+border-color:#22c55e;
+box-shadow:0 16px 34px rgba(2,6,23,0.22);
+}
+
+.pill{
+background:#0f172a;
+border:1px solid #334155;
+}
+
+.btn-primary{
+background:#22c55e;
+}
+
+.btn-primary:hover{
+background:#16a34a;
+}
+
+.btn-secondary{
+background:#1e293b;
+border:1px solid #334155;
+}
+
+.btn-secondary:hover{
+background:#263548;
+}
+
+.status-paid{
+color:#4ade80;
+}
+
+.status-pending{
+color:#fbbf24;
+}
+</style>
+</head>
+<body>
+<nav class="bg-black/45 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<a href="/homepage.html" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
+<span class="hidden md:inline text-sm text-slate-400">Order History</span>
+</div>
+<div class="flex items-center gap-3">
+<a href="/homepage.html" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Back to Store</a>
+<button id="logoutBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Logout</button>
+</div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-5 md:px-8 py-8 md:py-10">
+<section class="panel rounded-[28px] p-6 md:p-8">
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<div>
+<h1 class="text-3xl md:text-4xl font-black">Order History</h1>
+<p class="text-slate-400 mt-2">View all placed orders and open any order for full details.</p>
+</div>
+<div class="flex flex-wrap gap-3">
+<div id="historyCount" class="pill px-4 py-3 rounded-2xl text-sm text-slate-300">0 Orders</div>
+<button id="refreshHistoryBtn" class="btn-secondary px-5 py-3 rounded-2xl text-sm font-bold">Refresh</button>
+<a href="/homepage.html" class="btn-primary px-5 py-3 rounded-2xl text-sm font-bold">Shop More</a>
+</div>
+</div>
+
+<div id="historyList" class="grid grid-cols-1 xl:grid-cols-2 gap-5 mt-8"></div>
+</section>
+</main>
+
+<script>
+const USER_KEY='nutricore_user';
+const TOKEN_KEY='nutricore_token';
+const LAST_INVOICE_KEY='nutricore_last_invoice';
+const CHECKOUT_STATE_KEY='nutricore_checkout_state';
+
+function getUser(){try{return JSON.parse(localStorage.getItem(USER_KEY)||'null')}catch(e){return null}}
+function getToken(){return localStorage.getItem(TOKEN_KEY)||''}
+function getCheckoutState(){try{return JSON.parse(localStorage.getItem(CHECKOUT_STATE_KEY)||'{}')}catch(e){return {}}}
+function clearClientSession(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem('nutricore_cart');localStorage.removeItem(CHECKOUT_STATE_KEY);localStorage.removeItem(LAST_INVOICE_KEY)}
+function formatCurrency(value){return `Rs. ${Number(value||0).toFixed(2)}`}
+function formatDateTime(value){if(!value)return'Not available';return new Date(value).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+function escapeHtml(text){return String(text||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;")}
+
+function aggregateItems(items){
+const grouped=new Map();
+items.forEach((item)=>{
+const key=String(item.product_id||item.name);
+const existing=grouped.get(key);
+if(existing){
+existing.qty+=1;
+}else{
+grouped.set(key,{name:item.name||'Product',qty:1});
+}
+});
+return Array.from(grouped.values());
+}
+
+function getHighlightedOrderNumber(){
+const checkoutState=getCheckoutState();
+return localStorage.getItem(LAST_INVOICE_KEY)||checkoutState.lastOrderNumber||'';
+}
+
+function renderHistory(history){
+const historyList=document.getElementById('historyList');
+const historyCount=document.getElementById('historyCount');
+historyCount.textContent=`${history.length} Order${history.length===1?'':'s'}`;
+
+if(!history.length){
+historyList.innerHTML=`
+<div class="panel rounded-[24px] p-8 xl:col-span-2 text-center">
+<i class="fa fa-box-open text-4xl text-slate-500"></i>
+<h2 class="text-2xl font-black mt-4">No Orders Found</h2>
+<p class="text-slate-400 mt-3">Your placed orders will appear here.</p>
+<a href="/homepage.html" class="inline-flex items-center justify-center btn-primary px-5 py-3 rounded-2xl text-sm font-bold mt-6">Start Shopping</a>
+</div>`;
+return;
+}
+
+const highlightedOrder=getHighlightedOrderNumber();
+historyList.innerHTML=history.map((order)=>{
+const uniqueItems=aggregateItems(order.items||[]);
+const paymentClass=String(order.payment_status||'').toLowerCase()==='paid'?'status-paid':'status-pending';
+const isRecent=highlightedOrder && highlightedOrder===order.order_number;
+return `
+<article class="order-card rounded-[24px] p-6">
+<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+<div>
+<div class="flex items-center gap-3 flex-wrap">
+<p class="text-green-400 font-bold tracking-wide">${escapeHtml(order.order_number)}</p>
+${isRecent?'<span class="pill px-3 py-1 rounded-full text-xs text-green-300">Latest</span>':''}
+</div>
+<p class="text-slate-400 text-sm mt-2">${escapeHtml(formatDateTime(order.timestamp))}</p>
+<p class="text-3xl font-black mt-3">${formatCurrency(order.total_price)}</p>
+</div>
+<div class="text-left md:text-right">
+<p class="text-sm text-slate-400">Payment</p>
+<p class="font-bold mt-1">${escapeHtml(order.payment_mode||'NA')}</p>
+<p class="text-sm mt-1 ${paymentClass}">${escapeHtml(order.payment_status||'NA')}</p>
+</div>
+</div>
+
+<div class="grid grid-cols-2 gap-4 mt-6">
+<div class="pill rounded-2xl p-4">
+<p class="text-xs uppercase tracking-[0.22em] text-slate-500">Units</p>
+<p class="text-xl font-black mt-2">${Number(order.item_count||0)}</p>
+</div>
+<div class="pill rounded-2xl p-4">
+<p class="text-xs uppercase tracking-[0.22em] text-slate-500">Products</p>
+<p class="text-xl font-black mt-2">${uniqueItems.length}</p>
+</div>
+</div>
+
+<div class="flex flex-wrap gap-2 mt-5">
+${uniqueItems.map((item)=>`<span class="pill px-3 py-2 rounded-full text-sm text-slate-300">${escapeHtml(item.name)} x${item.qty}</span>`).join('')}
+</div>
+
+<div class="flex items-center justify-end mt-6">
+<a href="/order-details.html?order=${encodeURIComponent(order.order_number)}" class="btn-secondary px-5 py-3 rounded-2xl text-sm font-bold">View Details</a>
+</div>
+</article>`;
+}).join('');
+}
+
+async function loadOrderHistory(){
+const token=getToken();
+const historyList=document.getElementById('historyList');
+if(!token){
+historyList.innerHTML='<div class="panel rounded-[24px] p-8 xl:col-span-2 text-center text-slate-300">Login is required to view order history.</div>';
+document.getElementById('historyCount').textContent='0 Orders';
+return;
+}
+
+historyList.innerHTML='<div class="panel rounded-[24px] p-8 xl:col-span-2 text-center text-slate-300">Loading order history...</div>';
+
+try{
+const res=await fetch('/my-orders',{headers:{Authorization:`Bearer ${token}`}});
+const data=await res.json();
+if(!res.ok){
+throw new Error(data.message||'Unable to fetch order history');
+}
+renderHistory(Array.isArray(data)?data:[]);
+}catch(err){
+historyList.innerHTML=`<div class="panel rounded-[24px] p-8 xl:col-span-2 text-center text-red-300">${escapeHtml(err.message||'Unable to load order history right now.')}</div>`;
+document.getElementById('historyCount').textContent='0 Orders';
+}
+}
+
+function init(){
+const user=getUser();
+if(!user||!user.id||!getToken()){
+window.location.replace('/login.html');
+return;
+}
+
+document.getElementById('refreshHistoryBtn').addEventListener('click',loadOrderHistory);
+document.getElementById('logoutBtn').addEventListener('click',()=>{
+clearClientSession();
+window.location.replace('/login.html');
+});
+
+loadOrderHistory();
+}
+
+init();
+window.addEventListener('pageshow',()=>{
+if(!getUser()||!getToken()){
+window.location.replace('/login.html');
+return;
+}
+loadOrderHistory();
+});
+</script>
+</body>
+</html>

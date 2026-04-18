@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCore Admin Offers</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
+.panel{background:rgba(15,23,42,.92);border:1px solid #334155;box-shadow:0 20px 45px rgba(2,6,23,.35)}
+.hero{background:linear-gradient(120deg,#020617 0%,#0f172a 48%,#1e293b 100%)}
+.btn-primary{background:#22c55e}.btn-primary:hover{background:#16a34a}
+.btn-secondary{background:#1e293b;border:1px solid #334155}.btn-secondary:hover{background:#334155}
+.soft{background:rgba(2,6,23,.48);border:1px solid rgba(148,163,184,.12)}
+</style>
+</head>
+<body>
+<nav class="bg-black/45 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<a href="/landingpage.html" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
+<span class="hidden md:inline text-slate-400">Admin Offers</span>
+</div>
+<div class="flex items-center gap-3">
+<a href="/adminpanel.html" class="btn-secondary px-4 py-2 rounded-xl text-sm">Dashboard</a>
+<a href="/store" class="btn-secondary px-4 py-2 rounded-xl text-sm">View Store</a>
+<button id="logoutBtn" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-sm font-bold">Logout</button>
+</div>
+</nav>
+
+<main class="p-6 md:p-10 space-y-8">
+<section class="hero panel rounded-[30px] p-6 md:p-8">
+<div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-8">
+<div class="max-w-3xl">
+<p class="text-green-400 text-sm font-bold uppercase tracking-[0.3em]">Promotions</p>
+<h1 class="text-4xl md:text-5xl font-black mt-3 leading-tight">Manage offers and coupon campaigns.</h1>
+<p class="text-slate-300 mt-4 text-lg leading-relaxed">Create, control, and review live promotions in one place.</p>
+</div>
+<div class="flex flex-wrap gap-3">
+<a href="/admin-products.html" class="btn-secondary px-5 py-3 rounded-2xl font-bold">Products</a>
+<a href="/admin-offers.html" class="btn-primary px-5 py-3 rounded-2xl font-bold">Offers</a>
+<a href="/admin-users.html" class="btn-secondary px-5 py-3 rounded-2xl font-bold">Users</a>
+</div>
+</div>
+</section>
+
+<section class="grid grid-cols-1 xl:grid-cols-[0.95fr_1.05fr] gap-8">
+<section class="panel rounded-[28px] p-6">
+<p class="text-sm uppercase tracking-[0.25em] text-green-400">Create Offer</p>
+<h2 class="text-3xl font-black mt-3">Publish a new coupon campaign</h2>
+<p class="text-slate-400 mt-3">Create the coupon code, headline, and offer conditions that appear on the live offers page.</p>
+<form id="offerForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+<input id="offerCode" type="text" placeholder="Offer code" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 uppercase">
+<input id="offerTitle" type="text" placeholder="Offer title" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<select id="offerDiscountType" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<option value="">Select discount type</option>
+<option value="percentage">Percentage discount</option>
+<option value="fixed">Flat amount discount</option>
+<option value="free_shipping">Free shipping</option>
+</select>
+<input id="offerDiscountValue" type="number" min="0" step="0.01" placeholder="Discount value" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="offerMinOrder" type="number" min="0" step="0.01" placeholder="Minimum order amount" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="offerMaxDiscount" type="number" min="0" step="0.01" placeholder="Maximum discount cap" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="offerConditionText" type="text" placeholder="Condition summary (optional)" class="md:col-span-2 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<textarea id="offerDescription" placeholder="Offer description" class="md:col-span-2 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 min-h-[120px]"></textarea>
+<div class="md:col-span-2 flex items-center gap-3">
+<button type="submit" class="btn-primary px-5 py-3 rounded-xl font-bold">Create Offer</button>
+<p id="offerFormMessage" class="text-sm text-slate-300"></p>
+</div>
+</form>
+</section>
+
+<section class="panel rounded-[28px] p-6">
+<div class="flex items-center justify-between gap-4 mb-5 flex-wrap">
+<div>
+<p class="text-sm uppercase tracking-[0.25em] text-green-400">Live Offers</p>
+<h2 class="text-3xl font-black mt-3">Current coupon campaigns</h2>
+</div>
+<button id="refreshOffersBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm">Refresh</button>
+</div>
+<div id="offerList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+</section>
+</section>
+</main>
+
+<script>
+const USER_KEY='nutricore_user';
+const TOKEN_KEY='nutricore_token';
+const ADMIN_EMAIL='nutricoreadmin@gmail.com';
+const state={offers:[]};
+function safeParse(value){try{return JSON.parse(value||'null')}catch(error){return null}}
+const user=safeParse(localStorage.getItem(USER_KEY));
+const token=localStorage.getItem(TOKEN_KEY)||'';
+if(!user||!user.is_admin||user.email!==ADMIN_EMAIL||!token){window.location.replace('/login.html')}
+function authHeaders(extra={}){return {'Content-Type':'application/json','Authorization':`Bearer ${token}`,...extra}}
+async function fetchJson(url,options={}){const response=await fetch(url,options);const data=await response.json();if(!response.ok){throw new Error(data.message||'Request failed')}return data}
+function escapeHtml(value){return String(value||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;')}
+
+async function loadOffers(){state.offers=await fetchJson('/admin/offers',{headers:authHeaders()});renderOffers()}
+
+function renderOffers(){
+const root=document.getElementById('offerList');
+if(!state.offers.length){root.innerHTML='<div class="soft rounded-2xl p-5 text-slate-300 md:col-span-2">No active offers created yet.</div>';return}
+root.innerHTML=state.offers.map((offer)=>`
+<article class="soft rounded-2xl p-5">
+<div class="flex items-start justify-between gap-3">
+<div>
+<p class="text-xs uppercase tracking-[0.24em] text-green-400">${escapeHtml(offer.badge||'Active')}</p>
+<h3 class="text-2xl font-black mt-3">${escapeHtml(offer.code)}</h3>
+<p class="text-white/90 font-bold mt-2">${escapeHtml(offer.title||'')}</p>
+</div>
+<button class="bg-red-600 hover:bg-red-500 px-3 py-2 rounded-xl text-sm font-bold" onclick="removeOffer(${offer.id})">Delete</button>
+</div>
+${offer.condition_text?`<p class="text-green-300 text-sm font-bold mt-4">${escapeHtml(offer.condition_text)}</p>`:''}
+<p class="text-slate-400 mt-4 leading-relaxed">${escapeHtml(offer.description||'')}</p>
+<p class="text-slate-500 text-sm mt-4">${escapeHtml(offer.cta_note||'')}</p>
+</article>`).join('');
+}
+
+function setConditionFieldState(){
+const type=document.getElementById('offerDiscountType').value;
+const valueInput=document.getElementById('offerDiscountValue');
+const minOrderInput=document.getElementById('offerMinOrder');
+const maxDiscountInput=document.getElementById('offerMaxDiscount');
+valueInput.disabled=!type||type==='free_shipping';
+maxDiscountInput.disabled=type!=='percentage';
+minOrderInput.disabled=!type;
+if(type==='percentage'){
+valueInput.placeholder='Discount percentage';
+}else if(type==='fixed'){
+valueInput.placeholder='Discount amount in Rs.';
+}else{
+valueInput.placeholder='Discount value';
+}
+if(valueInput.disabled){valueInput.value=''}
+if(maxDiscountInput.disabled){maxDiscountInput.value=''}
+if(minOrderInput.disabled){minOrderInput.value=''}
+}
+
+async function addOffer(event){
+event.preventDefault();
+const payload={
+code:document.getElementById('offerCode').value.trim().toUpperCase(),
+title:document.getElementById('offerTitle').value.trim(),
+discount_type:document.getElementById('offerDiscountType').value,
+discount_value:document.getElementById('offerDiscountValue').value.trim(),
+min_order_amount:document.getElementById('offerMinOrder').value.trim(),
+max_discount:document.getElementById('offerMaxDiscount').value.trim(),
+condition_text:document.getElementById('offerConditionText').value.trim(),
+description:document.getElementById('offerDescription').value.trim(),
+is_active:true
+};
+const message=document.getElementById('offerFormMessage');
+message.textContent='Publishing offer...';
+try{
+await fetchJson('/admin/offers',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+document.getElementById('offerForm').reset();
+setConditionFieldState();
+message.textContent='Offer created successfully.';
+await loadOffers();
+}catch(error){message.textContent=error.message||'Unable to create offer.'}
+}
+
+async function removeOffer(offerId){
+try{
+await fetchJson(`/admin/offers/${offerId}`,{method:'DELETE',headers:authHeaders()});
+await loadOffers();
+}catch(error){alert(error.message||'Unable to remove offer.')}
+}
+
+function logout(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem('nutricore_cart');localStorage.removeItem('nutricore_checkout_state');localStorage.removeItem('nutricore_last_invoice');window.location.replace('/login.html')}
+
+document.getElementById('offerForm').addEventListener('submit',addOffer);
+document.getElementById('refreshOffersBtn').addEventListener('click',loadOffers);
+document.getElementById('logoutBtn').addEventListener('click',logout);
+window.addEventListener('pageshow',()=>{const latestUser=safeParse(localStorage.getItem(USER_KEY));const latestToken=localStorage.getItem(TOKEN_KEY)||'';if(!latestUser||!latestUser.is_admin||latestUser.email!==ADMIN_EMAIL||!latestToken){window.location.replace('/login.html');return}loadOffers().catch(()=>{})})
+document.getElementById('offerDiscountType').addEventListener('change',setConditionFieldState);
+
+setConditionFieldState();
+loadOffers().catch((error)=>{alert(error.message||'Failed to load offers.')});
+</script>
+</body>
+</html>

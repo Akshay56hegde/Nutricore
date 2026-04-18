@@ -206,9 +206,10 @@ header {
 
 .product img {
     width: 100%;
-    height: 170px;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
     border-radius: 10px;
+    display: block;
 }
 
 .product button {
@@ -246,7 +247,7 @@ footer {
 <ul class="menu">
 <li><a href="#benefits">Benefits</a></li>
 <li><a href="#products">All Products</a></li>
-<li><a href="#products">Calculator</a></li>
+<li><a href="/login.html">Calculator</a></li>
 </ul>
 <button class="cta">Log in</button>
 </div>
@@ -290,67 +291,6 @@ Premium protein supplements designed for muscle growth, recovery, and daily nutr
 <button class="arrow-btn arrow-right" aria-label="Scroll right">&#8594;</button>
 
 <div id="productRow" class="container product-grid">
-<div class="product">
-<img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e" alt="Whey Protein">
-<h3>Whey Protein</h3>
-<p>Rs 1999</p>
-<button>Add to Cart</button>
-</div>
-
-<div class="product">
-<img src="https://images.unsplash.com/photo-1622484212850-eb596d769edc" alt="Mass Gainer">
-<h3>Mass Gainer</h3>
-<p>Rs 2499</p>
-<button>Add to Cart</button>
-</div>
-
-<div class="product">
-<img src="https://images.unsplash.com/photo-1605296867304-46d5465a13f1" alt="Plant Protein">
-<h3>Plant Protein</h3>
-<p>Rs 1799</p>
-<button>Add to Cart</button>
-</div>
-
-<div class="product">
-<img src="https://images.unsplash.com/photo-1579722821273-0f6c7d44362f" alt="Isolate Protein">
-<h3>Isolate Protein</h3>
-<p>Rs 2799</p>
-<button>Add to Cart</button>
-</div>
-
-<div class="product">
-<img src="https://images.unsplash.com/photo-1518611012118-696072aa579a" alt="Casein Protein">
-<h3>Casein Protein</h3>
-<p>Rs 2399</p>
-<button>Add to Cart</button>
-</div>
-
-<div class="product">
-<img src="https://images.unsplash.com/photo-1549570652-97324981a6fd" alt="Pre Workout">
-<h3>Pre Workout</h3>
-<p>Rs 1499</p>
-<button>Add to Cart</button>
-</div>
-
-<div class="product">
-<img src="https://images.unsplash.com/photo-1521804906057-1df8fdb718b7" alt="BCAA Recovery">
-<h3>BCAA Recovery</h3>
-<p>Rs 1299</p>
-<button>Add to Cart</button>
-</div>
-
-<div class="product">
-<img src="https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a" alt="Creatine Monohydrate">
-<h3>Creatine Monohydrate</h3>
-<p>Rs 999</p>
-<button>Add to Cart</button>
-</div>
-
-<div class="product view-more-card">
-<h3>Want More Options?</h3>
-<p>Browse the full supplement range.</p>
-<button>View More</button>
-</div>
 </div>
 </section>
 
@@ -359,8 +299,72 @@ Premium protein supplements designed for muscle growth, recovery, and daily nutr
 </footer>
 
 <script>
+function escapeHtml(value){
+    return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+function resolveProductImage(url){
+    var raw = String(url || '').trim();
+    if(!raw) return '/images/products/placeholder.svg';
+    if(raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:') || raw.startsWith('/')){
+        return raw;
+    }
+
+    var normalized = raw.replaceAll('\\', '/');
+    if(normalized.startsWith('images/')){
+        return '/' + normalized;
+    }
+
+    var fileName = normalized.split('/').pop();
+    return fileName ? '/images/products/' + fileName : '/images/products/placeholder.svg';
+}
+
 function goToLogin() {
     window.location.href = "/login.html";
+}
+
+async function loadPopularProducts(){
+    var row = document.getElementById("productRow");
+    row.innerHTML = '<div class="product"><h3>Loading products...</h3><p>Please wait while we fetch the latest catalog.</p><button>Browse</button></div>';
+
+    try{
+        var res = await fetch('/products?sort=low-high');
+        var data = await res.json();
+        if(!res.ok){
+            throw new Error(data.message || 'Failed to load products');
+        }
+
+        var products = Array.isArray(data) ? data.slice(0, 8) : [];
+        if(!products.length){
+            row.innerHTML = '<div class="product"><h3>No products yet</h3><p>Add products from admin product management to show them here.</p><button>Log in</button></div>';
+        }else{
+            row.innerHTML = products.map(function(product){
+                return `
+<div class="product">
+<img src="${resolveProductImage(product.image_url)}" alt="${escapeHtml(product.name)}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/images/products/placeholder.svg'">
+<h3>${escapeHtml(product.name)}</h3>
+<p>Rs ${Number(product.price || 0).toFixed(2)}</p>
+<button>View Product</button>
+</div>`;
+            }).join('') + `
+<div class="product view-more-card">
+<h3>Want More Options?</h3>
+<p>Browse the full supplement range.</p>
+<button>View More</button>
+</div>`;
+        }
+    }catch(error){
+        row.innerHTML = '<div class="product"><h3>Unable to load products</h3><p>Please try again in a moment.</p><button>Log in</button></div>';
+    }
+
+    document.querySelectorAll("#productRow .product button").forEach(function (btn) {
+        btn.addEventListener("click", goToLogin);
+    });
 }
 
 function scrollProductRow(direction){
@@ -384,6 +388,8 @@ document.querySelector(".arrow-right").addEventListener("click", function () {
 document.querySelectorAll("button:not(.arrow-btn)").forEach(function (btn) {
     btn.addEventListener("click", goToLogin);
 });
+
+loadPopularProducts();
 </script>
 </body>
 </html>

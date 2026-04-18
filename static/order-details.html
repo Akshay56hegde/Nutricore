@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCore Order Details</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+body{
+background:#0f172a;
+color:#ffffff;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+.panel{
+background:#111827;
+border:1px solid #334155;
+box-shadow:0 18px 42px rgba(2,6,23,0.24);
+}
+
+.info-card{
+background:#0f172a;
+border:1px solid #334155;
+}
+
+.btn-primary{
+background:#22c55e;
+}
+
+.btn-primary:hover{
+background:#16a34a;
+}
+
+.btn-secondary{
+background:#1e293b;
+border:1px solid #334155;
+}
+
+.btn-secondary:hover{
+background:#263548;
+}
+
+.status-paid{
+color:#4ade80;
+}
+
+.status-pending{
+color:#fbbf24;
+}
+</style>
+</head>
+<body>
+<nav class="bg-black/45 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<a href="/homepage.html" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
+<span class="hidden md:inline text-sm text-slate-400">Order Details</span>
+</div>
+<div class="flex items-center gap-3">
+<a href="/homepage.html" class="btn-primary px-4 py-2 rounded-xl text-sm font-bold">Shop More</a>
+<a href="/orders.html" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">View History</a>
+<button id="logoutBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Logout</button>
+</div>
+</nav>
+
+<main class="max-w-6xl mx-auto px-5 md:px-8 py-8 md:py-10">
+<section id="detailsPanel" class="panel rounded-[28px] p-6 md:p-8"></section>
+</main>
+
+<script>
+const USER_KEY='nutricore_user';
+const TOKEN_KEY='nutricore_token';
+const LAST_INVOICE_KEY='nutricore_last_invoice';
+const CHECKOUT_STATE_KEY='nutricore_checkout_state';
+
+function getUser(){try{return JSON.parse(localStorage.getItem(USER_KEY)||'null')}catch(e){return null}}
+function getToken(){return localStorage.getItem(TOKEN_KEY)||''}
+function getCheckoutState(){try{return JSON.parse(localStorage.getItem(CHECKOUT_STATE_KEY)||'{}')}catch(e){return {}}}
+function clearClientSession(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem('nutricore_cart');localStorage.removeItem(CHECKOUT_STATE_KEY);localStorage.removeItem(LAST_INVOICE_KEY)}
+function formatCurrency(value){return `Rs. ${Number(value||0).toFixed(2)}`}
+function formatDateTime(value){if(!value)return'Not available';return new Date(value).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+function escapeHtml(text){return String(text||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;")}
+
+function aggregateItems(items){
+const grouped=new Map();
+items.forEach((item)=>{
+const key=String(item.product_id||item.name);
+const existing=grouped.get(key);
+if(existing){
+existing.qty+=1;
+existing.lineTotal+=Number(item.price||0);
+}else{
+grouped.set(key,{
+name:item.name||'Product',
+price:Number(item.price||0),
+protein:Number(item.protein||0),
+qty:1,
+lineTotal:Number(item.price||0)
+});
+}
+});
+return Array.from(grouped.values());
+}
+
+function renderMessage(title,message,isError){
+document.getElementById('detailsPanel').innerHTML=`
+<div class="text-center py-10">
+<i class="fa ${isError?'fa-circle-exclamation text-red-400':'fa-box-open text-slate-500'} text-4xl"></i>
+<h1 class="text-3xl font-black mt-4">${escapeHtml(title)}</h1>
+<p class="text-slate-400 mt-3">${escapeHtml(message)}</p>
+<a href="/homepage.html" class="inline-flex items-center justify-center btn-primary px-5 py-3 rounded-2xl text-sm font-bold mt-6">Shop More</a>
+</div>`;
+}
+
+function renderOrder(order){
+const items=aggregateItems(order.items||[]);
+const totalProtein=items.reduce((sum,item)=>sum+Number(item.protein||0)*item.qty,0);
+const paymentClass=String(order.payment_status||'').toLowerCase()==='paid'?'status-paid':'status-pending';
+
+document.getElementById('detailsPanel').innerHTML=`
+<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
+<div>
+<p class="text-sm uppercase tracking-[0.28em] text-green-400">Order Details</p>
+<h1 class="text-3xl md:text-4xl font-black mt-3">${escapeHtml(order.order_number)}</h1>
+<p class="text-slate-400 mt-3">Placed on ${escapeHtml(formatDateTime(order.timestamp))}</p>
+</div>
+<div class="info-card rounded-[22px] p-5 min-w-[220px]">
+<p class="text-sm text-slate-400">Invoice Total</p>
+<p class="text-3xl font-black mt-2">${formatCurrency(order.total_price)}</p>
+</div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-5 mt-8">
+<div class="info-card rounded-[24px] p-5">
+<p class="text-sm text-slate-400">Shipping Address</p>
+<p class="font-bold text-lg mt-3 leading-relaxed">${escapeHtml(order.shipping_address||'Not available')}</p>
+</div>
+<div class="info-card rounded-[24px] p-5">
+<p class="text-sm text-slate-400">Payment Summary</p>
+<div class="grid grid-cols-2 gap-4 mt-4">
+<div>
+<p class="text-slate-500 text-sm">Mode</p>
+<p class="text-xl font-black mt-1">${escapeHtml(order.payment_mode||'NA')}</p>
+</div>
+<div>
+<p class="text-slate-500 text-sm">Status</p>
+<p class="text-xl font-black mt-1 ${paymentClass}">${escapeHtml(order.payment_status||'NA')}</p>
+</div>
+<div>
+<p class="text-slate-500 text-sm">Products</p>
+<p class="text-xl font-black mt-1">${items.length}</p>
+</div>
+<div>
+<p class="text-slate-500 text-sm">Units</p>
+<p class="text-xl font-black mt-1">${Number(order.item_count||0)}</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="grid md:grid-cols-3 gap-4 mt-5">
+<div class="info-card rounded-[22px] p-5">
+<p class="text-sm text-slate-400">Protein Total</p>
+<p class="text-2xl font-black mt-2">${totalProtein.toFixed(1)}g</p>
+</div>
+<div class="info-card rounded-[22px] p-5">
+<p class="text-sm text-slate-400">Unique Products</p>
+<p class="text-2xl font-black mt-2">${items.length}</p>
+</div>
+<div class="info-card rounded-[22px] p-5">
+<p class="text-sm text-slate-400">Order Value</p>
+<p class="text-2xl font-black mt-2">${formatCurrency(order.total_price)}</p>
+</div>
+</div>
+
+<div class="mt-8">
+<div class="flex items-center justify-between gap-4">
+<h2 class="text-2xl font-black">Invoice Items</h2>
+</div>
+<div class="space-y-3 mt-5">
+${items.map((item)=>`
+<div class="info-card rounded-[20px] p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<div>
+<p class="font-bold text-lg">${escapeHtml(item.name)}</p>
+<p class="text-slate-400 text-sm mt-1">${item.qty} x ${formatCurrency(item.price)} - ${Number(item.protein||0).toFixed(1)}g protein each</p>
+</div>
+<div class="text-left md:text-right">
+<p class="text-slate-500 text-xs uppercase tracking-[0.22em]">Line Total</p>
+<p class="font-black text-lg mt-1">${formatCurrency(item.lineTotal)}</p>
+</div>
+</div>`).join('')}
+</div>
+</div>`;
+}
+
+async function loadOrderDetails(){
+const token=getToken();
+const params=new URLSearchParams(window.location.search);
+const checkoutState=getCheckoutState();
+const orderNumber=params.get('order')||localStorage.getItem(LAST_INVOICE_KEY)||checkoutState.lastOrderNumber||'';
+
+if(!token){
+window.location.replace('/login.html');
+return;
+}
+
+if(!orderNumber){
+renderMessage('Order Not Found','No order was selected.',true);
+return;
+}
+
+document.getElementById('detailsPanel').innerHTML='<div class="text-center py-10 text-slate-300">Loading order details...</div>';
+
+try{
+const res=await fetch('/my-orders',{headers:{Authorization:`Bearer ${token}`}});
+const data=await res.json();
+if(!res.ok){
+throw new Error(data.message||'Unable to fetch order details');
+}
+const history=Array.isArray(data)?data:[];
+const order=history.find((item)=>String(item.order_number)===orderNumber);
+if(!order){
+renderMessage('Order Not Found','The requested order could not be located in your history.',true);
+return;
+}
+renderOrder(order);
+}catch(err){
+renderMessage('Unable to Load Order',err.message||'Please try again later.',true);
+}
+}
+
+function init(){
+const user=getUser();
+if(!user||!user.id||!getToken()){
+window.location.replace('/login.html');
+return;
+}
+
+document.getElementById('logoutBtn').addEventListener('click',()=>{
+clearClientSession();
+window.location.replace('/login.html');
+});
+
+loadOrderDetails();
+}
+
+init();
+window.addEventListener('pageshow',()=>{
+if(!getUser()||!getToken()){
+window.location.replace('/login.html');
+return;
+}
+loadOrderDetails();
+});
+</script>
+</body>
+</html>

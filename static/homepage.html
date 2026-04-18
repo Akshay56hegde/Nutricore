@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NutriCore Store</title>
-<meta name="description" content="Buy whey protein, isolate, plant protein, mass gainers, and recovery supplements at NutriCore. Search products by brand, type, price, and rating.">
-<meta name="keywords" content="protein supplements, whey protein, isolate protein, mass gainer, plant protein, NutriCore store">
+<meta name="description" content="Buy whey protein concentrate, whey protein isolate, whey protein hydrolysate, casein protein, and plant-based protein at NutriCore. Search products by brand, type, price, and rating.">
+<meta name="keywords" content="protein supplements, whey protein concentrate, whey protein isolate, whey protein hydrolysate, casein protein, plant-based protein, NutriCore store">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="/homepage.html">
 
@@ -53,6 +53,27 @@ background:#16a34a;
 background:linear-gradient(90deg,#020617 0%,#11183a 45%,#4b4f63 100%);
 }
 
+.calc-panel{
+background:linear-gradient(180deg,rgba(15,23,42,0.88),rgba(15,23,42,0.72));
+border:1px solid rgba(148,163,184,0.2);
+box-shadow:0 20px 45px rgba(2,6,23,0.35);
+}
+
+.calc-hero.has-plan .calc-layout{
+grid-template-columns:1fr;
+}
+
+.insight-card{
+background:rgba(2,6,23,0.5);
+border:1px solid rgba(148,163,184,0.12);
+}
+
+.glass-chip{
+border:1px solid rgba(74,222,128,0.28);
+background:rgba(34,197,94,0.12);
+color:#bbf7d0;
+}
+
 .cart-count{
 position:absolute;
 top:-8px;
@@ -77,6 +98,32 @@ background:rgba(2,6,23,0.7);
 z-index:40;
 }
 
+.modal-overlay{
+position:fixed;
+inset:0;
+background:rgba(2,6,23,0.78);
+z-index:60;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:20px;
+}
+
+.modal-panel{
+width:min(760px,100%);
+max-height:90vh;
+overflow:hidden;
+background:#111827;
+border:1px solid #334155;
+border-radius:28px;
+box-shadow:0 24px 80px rgba(2,6,23,0.55);
+}
+
+.review-scroll{
+max-height:50vh;
+overflow:auto;
+}
+
 .cart-drawer{
 position:fixed;
 top:0;
@@ -93,6 +140,55 @@ flex-direction:column;
 .drawer-card{
 background:#1e293b;
 border:1px solid #334155;
+}
+
+.account-menu-wrap{
+position:absolute;
+right:0;
+top:100%;
+padding-top:12px;
+z-index:20;
+}
+
+.account-menu{
+min-width:320px;
+padding:18px;
+border-radius:20px;
+border:1px solid #334155;
+background:rgba(15,23,42,0.96);
+box-shadow:0 18px 45px rgba(15,23,42,0.45);
+opacity:0;
+visibility:hidden;
+transform:translateY(8px);
+pointer-events:none;
+transition:opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+}
+
+.account-dropdown.active > .account-menu-wrap .account-menu{
+opacity:1;
+visibility:visible;
+transform:translateY(0);
+pointer-events:auto;
+}
+
+.account-menu-link{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:12px 14px;
+border-radius:14px;
+font-size:17px;
+color:#e2e8f0;
+transition:background 0.2s ease, color 0.2s ease;
+}
+
+.account-menu-link:hover{
+background:rgba(30,41,59,0.95);
+color:#4ade80;
+}
+
+.account-menu-link.logout-link:hover{
+color:#f87171;
 }
 </style>
 </head>
@@ -116,16 +212,31 @@ border:1px solid #334155;
 <span id="cartCount" class="cart-count">0</span>
 </button>
 
-<div class="relative group">
-<button class="hover:text-green-400 bg-slate-800/60 border border-slate-700 w-11 h-11 rounded-xl flex items-center justify-center" aria-label="User menu">
+<div class="relative account-dropdown">
+<button id="accountMenuBtn" type="button" class="account-trigger hover:text-green-400 bg-slate-800/60 border border-slate-700 w-11 h-11 rounded-xl flex items-center justify-center" aria-label="User menu" aria-expanded="false">
 <i class="fa fa-user"></i>
 </button>
 
-<div class="absolute hidden group-hover:block bg-slate-800 right-0 mt-3 p-6 rounded-xl text-lg min-w-[280px] border border-slate-700 space-y-3 z-20">
-<p class="hover:text-green-400">My Orders</p>
-<p class="hover:text-green-400">Account</p>
-<p class="hover:text-green-400">Wishlist</p>
-<p id="logoutBtn" class="hover:text-red-400 cursor-pointer">Logout</p>
+<div class="account-menu-wrap">
+<div class="account-menu">
+<p class="text-xs uppercase tracking-[0.28em] text-slate-400 mb-3 px-3">Account</p>
+<a href="/account.html" class="account-menu-link">
+<span>My Account</span>
+<i class="fa fa-chevron-right text-xs"></i>
+</a>
+<a href="/offers.html" class="account-menu-link">
+<span>Offers</span>
+<i class="fa fa-tag text-sm"></i>
+</a>
+<a href="/orders.html" class="account-menu-link">
+<span>History</span>
+<i class="fa fa-clock-rotate-left text-sm"></i>
+</a>
+<button id="logoutBtn" type="button" class="account-menu-link logout-link w-full text-left">
+<span>Logout</span>
+<i class="fa fa-right-from-bracket text-sm"></i>
+</button>
+</div>
 </div>
 </div>
 </div>
@@ -153,17 +264,73 @@ border:1px solid #334155;
 </aside>
 
 <div class="p-10">
-<section class="calc-hero rounded-3xl p-8 md:p-10 mb-12">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-<div class="max-w-xl mx-auto md:mx-0">
-<h2 class="text-4xl font-black leading-tight">Personalized Protein Calculator</h2>
-<p class="text-xl text-slate-200 mt-5 leading-relaxed">Not sure how much protein you need? Our advanced calculator helps you determine the perfect daily intake based on your fitness goals and body composition.</p>
-<button onclick="openCalculator()" class="mt-8 px-8 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl font-bold text-xl">Try Calculator Now</button>
+<section id="calculatorHero" class="calc-hero rounded-3xl p-8 md:p-10 mb-12">
+<div class="calc-layout grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+<div id="homeCalculatorIntro" class="max-w-xl mx-auto md:mx-0">
+<div class="inline-flex items-center gap-2 glass-chip px-4 py-2 rounded-full text-sm font-semibold tracking-wide uppercase">Smart Nutrition Match</div>
+<h2 class="text-4xl font-black leading-tight mt-5">Personalized Protein Calculator</h2>
+<p class="text-xl text-slate-200 mt-5 leading-relaxed">Get a tailored protein target, calorie estimate, and protein type guidance aligned to your goal, activity level, and dietary needs.</p>
+<div class="mt-8 flex flex-wrap gap-3">
+<a href="/calculator" class="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl font-bold text-xl inline-flex items-center justify-center">Try Calculator Now</a>
+</div>
 </div>
 
-<div class="bg-slate-500/40 border border-slate-400/20 rounded-2xl min-h-[300px] md:min-h-[360px] flex flex-col items-center justify-center text-center">
-<i class="fa fa-bolt text-5xl text-emerald-400 mb-5"></i>
-<p class="text-3xl text-slate-100">Optimize Your Nutrition</p>
+<div id="homeCalculatorCard" class="calc-panel rounded-[28px] min-h-[320px] md:min-h-[360px] p-7 md:p-8 flex flex-col justify-between">
+<div id="homeCalculatorEmptyState" class="h-full flex flex-col items-center justify-center text-center">
+<div class="w-20 h-20 rounded-3xl bg-emerald-500/15 border border-emerald-400/20 flex items-center justify-center mb-5">
+<i class="fa fa-bolt text-4xl text-emerald-400"></i>
+</div>
+<p class="text-3xl font-bold text-slate-100">Optimize Your Nutrition</p>
+<p class="text-slate-300 text-lg mt-4 max-w-sm">Build a plan that feels like a premium coaching recommendation, then keep it visible while you shop.</p>
+</div>
+
+<div id="homeCalculatorResult" class="hidden">
+<div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+<div>
+<p class="text-sm uppercase tracking-[0.35em] text-emerald-300">Recommended Type</p>
+<h3 id="homeRecommendedProduct" class="text-3xl md:text-4xl font-black mt-3 text-white"></h3>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-400/20 flex items-center justify-center">
+<i class="fa fa-dumbbell text-xl text-emerald-300"></i>
+</div>
+<div class="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-300/10 flex items-center justify-center">
+<i class="fa fa-chart-line text-xl text-sky-200"></i>
+</div>
+</div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-8">
+<div class="insight-card rounded-2xl p-4">
+<p class="text-xs uppercase tracking-[0.25em] text-slate-400">Daily Calories</p>
+<p id="homeCalories" class="text-2xl font-black text-white mt-3"></p>
+</div>
+<div class="insight-card rounded-2xl p-4">
+<p class="text-xs uppercase tracking-[0.25em] text-slate-400">Protein Goal</p>
+<p id="homeProtein" class="text-2xl font-black text-white mt-3"></p>
+</div>
+<div class="insight-card rounded-2xl p-4">
+<p class="text-xs uppercase tracking-[0.25em] text-slate-400">Goal Alignment</p>
+<p id="homeGoalSummary" class="text-lg font-bold text-white mt-3"></p>
+</div>
+<div class="insight-card rounded-2xl p-4">
+<p class="text-xs uppercase tracking-[0.25em] text-slate-400">Digestive Fit</p>
+<p id="homeDietSummary" class="text-lg font-bold text-white mt-3"></p>
+</div>
+</div>
+
+<div class="mt-6">
+<div class="insight-card rounded-[24px] p-5">
+<p class="text-xs uppercase tracking-[0.28em] text-slate-400">Why This Works</p>
+<div id="homeJustificationList" class="mt-4 grid gap-3"></div>
+</div>
+</div>
+
+<div class="flex flex-wrap gap-3 mt-6">
+<button id="homeEditCalculatorBtn" class="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 font-bold">Edit Details</button>
+<button id="homeRecalculateBtn" class="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-bold">Calculate Again</button>
+</div>
+</div>
 </div>
 </div>
 </section>
@@ -200,11 +367,11 @@ border:1px solid #334155;
 <label class="text-sm text-gray-400">Protein Type</label>
 <select id="typeFilter" class="w-full mt-2 p-2 rounded text-black">
 <option value="">All Types</option>
-<option>Whey</option>
-<option>Isolate</option>
-<option>Plant</option>
-<option>Mass Gainer</option>
-<option>Casein</option>
+<option>Whey Protein Concentrate</option>
+<option>Whey Protein Isolate</option>
+<option>Whey Protein Hydrolysate</option>
+<option>Casein Protein</option>
+<option>Plant-Based Protein</option>
 </select>
 </div>
 
@@ -227,6 +394,38 @@ border:1px solid #334155;
 <div id="productGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 items-stretch"></div>
 </div>
 
+<div id="ratingModal" class="modal-overlay hidden">
+<div class="modal-panel">
+<div class="p-6 border-b border-slate-700 flex items-start justify-between gap-4">
+<div>
+<p class="text-xs uppercase tracking-[0.28em] text-slate-400">Product Reviews</p>
+<h3 id="ratingModalTitle" class="text-2xl font-black mt-2">Product</h3>
+<p id="ratingModalSummary" class="text-slate-300 mt-2">Loading reviews...</p>
+</div>
+<button id="closeRatingModalBtn" type="button" class="bg-slate-800 border border-slate-700 h-11 w-11 rounded-xl text-xl font-bold">×</button>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-[280px_1fr]">
+<div class="p-6 border-b lg:border-b-0 lg:border-r border-slate-700">
+<p class="text-sm font-bold text-slate-100">Rate this product</p>
+<div id="modalRateStars" class="flex items-center gap-2 mt-4"></div>
+<textarea id="modalReviewInput" rows="5" placeholder="Write your review (optional)" class="w-full mt-4 p-3 rounded-xl bg-slate-950 border border-slate-700 text-white resize-none"></textarea>
+<p id="modalReviewMessage" class="text-sm text-slate-400 mt-3 min-h-[20px]"></p>
+<button id="submitReviewBtn" type="button" class="btn w-full py-3 rounded-xl font-bold mt-4">Submit Review</button>
+<p id="modalLoginHint" class="text-sm text-slate-400 mt-3 hidden">Login to submit a rating and review.</p>
+</div>
+
+<div class="p-6">
+<div class="flex items-center justify-between gap-3">
+<p class="text-sm font-bold text-slate-100">What customers are saying</p>
+<span id="modalReviewCount" class="text-sm text-slate-400">0 reviews</span>
+</div>
+<div id="modalReviewsList" class="review-scroll mt-4 space-y-4"></div>
+</div>
+</div>
+</div>
+</div>
+
 <footer class="mt-14 border-t border-slate-800 bg-slate-950/60 px-10 py-6">
 <div class="text-base text-slate-300 text-center">
 <p>NutriCore. All rights reserved.</p>
@@ -235,8 +434,12 @@ border:1px solid #334155;
 
 <script>
 const CART_KEY = 'nutricore_cart';
-const USER_KEY = 'nutricore_user';
 const TOKEN_KEY = 'nutricore_token';
+const USER_KEY = 'nutricore_user';
+const PRODUCT_CACHE_KEY = 'nutricore_products_cache';
+const CALCULATOR_PLAN_KEY = 'nutricore_calculator_plan';
+const CHECKOUT_STATE_KEY = 'nutricore_checkout_state';
+const LAST_INVOICE_KEY = 'nutricore_last_invoice';
 const FALLBACK_IMAGE = '/images/products/placeholder.svg';
 
 const priceFilter = document.getElementById('priceFilter');
@@ -254,6 +457,8 @@ const productGrid = document.getElementById('productGrid');
 const productStatus = document.getElementById('productStatus');
 const cartBtn = document.getElementById('cartBtn');
 const cartCountEl = document.getElementById('cartCount');
+const accountDropdown = document.querySelector('.account-dropdown');
+const accountMenuBtn = document.getElementById('accountMenuBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const cartDrawer = document.getElementById('cartDrawer');
 const cartOverlay = document.getElementById('cartOverlay');
@@ -264,12 +469,159 @@ const drawerProtein = document.getElementById('drawerProtein');
 const drawerSubtotal = document.getElementById('drawerSubtotal');
 const clearDrawerCartBtn = document.getElementById('clearDrawerCartBtn');
 const drawerCheckoutBtn = document.getElementById('drawerCheckoutBtn');
+const calculatorHero = document.getElementById('calculatorHero');
+const homeCalculatorIntro = document.getElementById('homeCalculatorIntro');
+const homeCalculatorEmptyState = document.getElementById('homeCalculatorEmptyState');
+const homeCalculatorResult = document.getElementById('homeCalculatorResult');
+const homeRecommendedProduct = document.getElementById('homeRecommendedProduct');
+const homeCalories = document.getElementById('homeCalories');
+const homeProtein = document.getElementById('homeProtein');
+const homeGoalSummary = document.getElementById('homeGoalSummary');
+const homeDietSummary = document.getElementById('homeDietSummary');
+const homeJustificationList = document.getElementById('homeJustificationList');
+const homeEditCalculatorBtn = document.getElementById('homeEditCalculatorBtn');
+const homeRecalculateBtn = document.getElementById('homeRecalculateBtn');
+const ratingModal = document.getElementById('ratingModal');
+const closeRatingModalBtn = document.getElementById('closeRatingModalBtn');
+const ratingModalTitle = document.getElementById('ratingModalTitle');
+const ratingModalSummary = document.getElementById('ratingModalSummary');
+const modalRateStars = document.getElementById('modalRateStars');
+const modalReviewInput = document.getElementById('modalReviewInput');
+const submitReviewBtn = document.getElementById('submitReviewBtn');
+const modalReviewMessage = document.getElementById('modalReviewMessage');
+const modalReviewsList = document.getElementById('modalReviewsList');
+const modalReviewCount = document.getElementById('modalReviewCount');
+const modalLoginHint = document.getElementById('modalLoginHint');
 
 let currentProducts = [];
 let searchDebounceTimer = null;
+const ratingModalState = { productId: null, selectedRating: 0 };
+
+function getToken(){
+try{
+return localStorage.getItem(TOKEN_KEY) || '';
+}catch(e){
+return '';
+}
+}
+
+function getUser(){
+try{
+return JSON.parse(localStorage.getItem(USER_KEY) || 'null');
+}catch(e){
+return null;
+}
+}
+
+function clearClientSession(){
+localStorage.removeItem(USER_KEY);
+localStorage.removeItem(TOKEN_KEY);
+localStorage.removeItem(CART_KEY);
+localStorage.removeItem(CHECKOUT_STATE_KEY);
+localStorage.removeItem(LAST_INVOICE_KEY);
+}
+
+function escapeHtml(value){
+return String(value ?? '')
+.replaceAll('&', '&amp;')
+.replaceAll('<', '&lt;')
+.replaceAll('>', '&gt;')
+.replaceAll('"', '&quot;')
+.replaceAll("'", '&#39;');
+}
+
+function getProductCacheKey(params){
+return `${PRODUCT_CACHE_KEY}:${params.toString()}`;
+}
+
+function readCachedProducts(params){
+try{
+const cached = JSON.parse(sessionStorage.getItem(getProductCacheKey(params)) || 'null');
+return Array.isArray(cached) ? cached : null;
+}catch(e){
+return null;
+}
+}
+
+function writeCachedProducts(params, products){
+try{
+sessionStorage.setItem(getProductCacheKey(params), JSON.stringify(Array.isArray(products) ? products : []));
+}catch(e){
+}
+}
+
+function clearProductCache(){
+try{
+Object.keys(sessionStorage).forEach((key) => {
+if(key.startsWith(`${PRODUCT_CACHE_KEY}:`)){
+sessionStorage.removeItem(key);
+}
+});
+}catch(e){
+}
+}
+
+function warmProductImages(products){
+return;
+}
+
+function getSavedCalculatorPlan(){
+try{
+return JSON.parse(localStorage.getItem(CALCULATOR_PLAN_KEY) || 'null');
+}catch(e){
+return null;
+}
+}
 
 function openCalculator(){
-alert('Protein calculator page will open next step');
+window.location.href = '/calculator';
+}
+
+function renderInsightPoints(inputs, plan){
+const points = [
+`${plan.recommended_type || 'This protein type'} suits your ${String(inputs.goal || 'fitness').toLowerCase()} target with a daily protein goal of ${Number(plan.protein_grams || 0).toLocaleString()}g.`,
+`Your intake is supported by an estimated ${Number(plan.calories || 0).toLocaleString()} kcal per day based on your activity level.`,
+plan.reason || 'The recommendation is aligned to your profile and daily nutrition needs.'
+];
+
+if(inputs.is_vegan){
+points.push('Dairy-free preference is prioritized so the plan stays aligned with a vegan nutrition approach.');
+}else if(inputs.is_sensitive){
+points.push('Digestive sensitivity is factored in to keep the recommendation easier to tolerate day to day.');
+}
+
+homeJustificationList.innerHTML = points.map((point) => `
+<div class="flex items-start gap-3">
+<span class="mt-1 w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
+<p class="text-slate-200 leading-relaxed">${point}</p>
+</div>
+`).join('');
+}
+
+function renderHomeCalculatorPlan(){
+const saved = getSavedCalculatorPlan();
+const plan = saved && saved.plan ? saved.plan : null;
+const inputs = saved && saved.inputs ? saved.inputs : {};
+
+if(!plan){
+calculatorHero.classList.remove('has-plan');
+homeCalculatorIntro.classList.remove('hidden');
+homeCalculatorEmptyState.classList.remove('hidden');
+homeCalculatorResult.classList.add('hidden');
+return;
+}
+
+calculatorHero.classList.add('has-plan');
+homeCalculatorIntro.classList.add('hidden');
+homeCalculatorEmptyState.classList.add('hidden');
+homeCalculatorResult.classList.remove('hidden');
+
+homeRecommendedProduct.textContent = plan.recommended_type || 'Recommended Type';
+homeCalories.textContent = `${Number(plan.calories || 0).toLocaleString()} kcal`;
+homeProtein.textContent = `${Number(plan.protein_grams || 0).toLocaleString()} g`;
+homeGoalSummary.textContent = inputs.goal || 'Balanced Plan';
+homeDietSummary.textContent = inputs.is_vegan ? 'Vegan Friendly' : (inputs.is_sensitive ? 'Easy on Digestion' : 'Standard Dairy Fit');
+renderInsightPoints(inputs, plan);
 }
 
 function toggleCustomPriceRange(){
@@ -309,12 +661,14 @@ const cart = getCart();
 const existing = cart.find(item => item.id === product.id);
 if(existing){
 existing.qty += 1;
+existing.image_url = product.image_url || existing.image_url || '';
 }else{
 cart.push({
 id: product.id,
 name: product.name,
 price: Number(product.price || 0),
 protein: Number(product.protein || 0),
+image_url: product.image_url || '',
 qty: 1
 });
 }
@@ -342,6 +696,7 @@ id: product.id,
 name: product.name,
 price: Number(product.price || 0),
 protein: Number(product.protein || 0),
+image_url: product.image_url || '',
 qty: qty
 });
 }
@@ -355,6 +710,143 @@ if (value >= 4.8) return '★★★★★';
 if (value >= 4.5) return '★★★★☆';
 if (value >= 4.0) return '★★★★☆';
 return '★★★☆☆';
+}
+
+function getRatingSummary(product){
+const ratingCount = Number(product.rating_count || 0);
+if(!ratingCount || !product.rating){
+return '<span class="text-slate-400 text-sm">No ratings yet</span>';
+}
+return `<span class="text-yellow-400 text-sm">${renderStars(product.rating)} (${Number(product.rating).toFixed(1)}) • ${ratingCount} rating${ratingCount === 1 ? '' : 's'}</span>`;
+}
+
+function renderModalStars(){
+modalRateStars.innerHTML = [1,2,3,4,5].map((value)=>`
+<button type="button" class="text-3xl leading-none ${value <= Number(ratingModalState.selectedRating || 0) ? 'text-yellow-400' : 'text-slate-500 hover:text-yellow-300'} modal-star-btn" data-rating="${value}" aria-label="Select ${value} star${value===1?'':'s'}">★</button>
+`).join('');
+
+modalRateStars.querySelectorAll('.modal-star-btn').forEach((button) => {
+button.addEventListener('click', () => {
+ratingModalState.selectedRating = Number(button.dataset.rating);
+renderModalStars();
+});
+});
+}
+
+function openRatingModal(){
+ratingModal.classList.remove('hidden');
+document.body.classList.add('overflow-hidden');
+}
+
+function closeRatingModal(){
+ratingModal.classList.add('hidden');
+document.body.classList.remove('overflow-hidden');
+ratingModalState.productId = null;
+ratingModalState.selectedRating = 0;
+modalReviewMessage.textContent = '';
+}
+
+function renderReviewCard(review){
+const reviewText = review.review ? `<p class="text-slate-300 mt-3 leading-relaxed">${escapeHtml(review.review)}</p>` : '<p class="text-slate-500 mt-3 text-sm">No written review.</p>';
+return `
+<article class="drawer-card rounded-2xl p-4">
+<div class="flex items-start justify-between gap-3">
+<div>
+<p class="font-bold text-white">${escapeHtml(review.user_name || 'Anonymous')}</p>
+<p class="text-yellow-400 text-sm mt-1">${renderStars(review.rating)} (${Number(review.rating || 0).toFixed(1)})</p>
+</div>
+<p class="text-xs text-slate-500">${review.updated_at ? new Date(review.updated_at).toLocaleDateString() : ''}</p>
+</div>
+${reviewText}
+</article>
+`;
+}
+
+async function loadProductReviews(product){
+ratingModalState.productId = product.id;
+ratingModalTitle.textContent = product.name;
+ratingModalSummary.textContent = 'Loading reviews...';
+modalReviewCount.textContent = 'Loading...';
+modalReviewsList.innerHTML = '<div class="drawer-card rounded-2xl p-4 text-slate-300">Loading reviews...</div>';
+modalReviewMessage.textContent = '';
+modalReviewInput.value = '';
+ratingModalState.selectedRating = Number(product.user_rating || 0);
+renderModalStars();
+openRatingModal();
+
+try{
+const headers = {};
+const token = getToken();
+if(token){
+headers.Authorization = `Bearer ${token}`;
+}
+const res = await fetch(`/products/${product.id}/reviews`, { headers });
+const data = await res.json();
+if(!res.ok){
+throw new Error(data.message || 'Unable to load reviews');
+}
+
+ratingModalSummary.textContent = data.rating_count
+? `${renderStars(data.rating)} (${Number(data.rating || 0).toFixed(1)}) from ${data.rating_count} rating${data.rating_count === 1 ? '' : 's'}`
+: 'No ratings yet';
+modalReviewCount.textContent = `${Number(data.reviews?.length || 0)} review${Number(data.reviews?.length || 0) === 1 ? '' : 's'}`;
+
+if(data.current_user_review){
+ratingModalState.selectedRating = Number(data.current_user_review.rating || 0);
+modalReviewInput.value = data.current_user_review.review || '';
+}
+renderModalStars();
+
+if(Array.isArray(data.reviews) && data.reviews.length){
+modalReviewsList.innerHTML = data.reviews.map(renderReviewCard).join('');
+}else{
+modalReviewsList.innerHTML = '<div class="drawer-card rounded-2xl p-4 text-slate-300">No customer reviews yet. Be the first to share one.</div>';
+}
+}catch(error){
+ratingModalSummary.textContent = error.message || 'Unable to load reviews.';
+modalReviewCount.textContent = '0 reviews';
+modalReviewsList.innerHTML = '<div class="drawer-card rounded-2xl p-4 text-slate-300">Unable to load reviews right now.</div>';
+}
+
+const loggedIn = Boolean(getUser() && getToken());
+submitReviewBtn.disabled = !loggedIn;
+submitReviewBtn.classList.toggle('opacity-50', !loggedIn);
+submitReviewBtn.classList.toggle('cursor-not-allowed', !loggedIn);
+modalReviewInput.disabled = !loggedIn;
+modalLoginHint.classList.toggle('hidden', loggedIn);
+}
+
+async function submitRating(productId, rating, review){
+const token = getToken();
+if(!token){
+window.location.href = '/login.html';
+return;
+}
+
+try{
+const res = await fetch(`/products/${productId}/rating`, {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'Authorization': `Bearer ${token}`
+},
+body: JSON.stringify({ rating, review })
+});
+const data = await res.json();
+if(!res.ok){
+throw new Error(data.message || 'Unable to save rating');
+}
+
+currentProducts = currentProducts.map((product) => product.id === productId
+? { ...product, rating: data.rating, rating_count: data.rating_count, user_rating: data.user_rating, user_review: data.user_review || '' }
+: product);
+
+clearProductCache();
+renderProducts(currentProducts);
+return data;
+}catch(error){
+throw error;
+}
 }
 
 function resolveProductImage(url){
@@ -396,12 +888,19 @@ const actionHtml = qty > 0
 const card = document.createElement('div');
 card.className = 'card rounded-xl overflow-hidden h-full flex flex-col';
 card.innerHTML = `
-<img src="${resolveProductImage(p.image_url)}" class="w-full h-56 object-cover" alt="${p.name}" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'">
+<div class="w-full aspect-square bg-slate-900 flex items-center justify-center overflow-hidden">
+<img src="${resolveProductImage(p.image_url)}" class="w-full h-full object-cover" alt="${p.name}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'">
+</div>
 <div class="p-5 flex-1 flex flex-col">
 <h3 class="font-bold">${p.name}</h3>
-<p class="text-slate-300 text-sm">${p.brand || 'NutriCore'} • ${p.protein_type || 'Whey'}</p>
-<p class="text-green-400 text-sm">${Number(p.protein || 0)}g protein</p>
-<p class="text-yellow-400 text-sm">${renderStars(p.rating)} (${Number(p.rating || 0).toFixed(1)})</p>
+<p class="text-slate-300 text-sm">${p.brand || 'NutriCore'} • ${p.protein_type || 'Whey Protein Concentrate'}</p>
+<p class="text-green-400 text-sm">${Number(p.protein || 0)}g per serving</p>
+<p class="text-slate-400 text-sm mt-1">${p.quantity ? `Net quantity: ${escapeHtml(p.quantity)}` : 'Net quantity not added'}</p>
+<div class="mt-3 flex items-center justify-between gap-3 flex-wrap">
+<button type="button" class="text-left rating-summary-trigger" data-product-id="${p.id}">
+${getRatingSummary(p)}
+</button>
+</div>
 <div class="flex justify-between items-center mt-auto pt-3">
 <span class="text-green-400 font-bold">₹${Number(p.price || 0).toFixed(2)}</span>
 ${actionHtml}
@@ -432,6 +931,13 @@ setItemQty(p, currentQty - 1);
 });
 }
 
+const ratingTrigger = card.querySelector('.rating-summary-trigger');
+if(ratingTrigger){
+ratingTrigger.addEventListener('click', () => {
+loadProductReviews(p);
+});
+}
+
 productGrid.appendChild(card);
 });
 }
@@ -444,6 +950,24 @@ cartDrawer.classList.remove('translate-x-full');
 function closeCartDrawer(){
 cartOverlay.classList.add('hidden');
 cartDrawer.classList.add('translate-x-full');
+}
+
+function openAccountMenu(){
+accountDropdown.classList.add('active');
+accountMenuBtn.setAttribute('aria-expanded', 'true');
+}
+
+function closeAccountMenu(){
+accountDropdown.classList.remove('active');
+accountMenuBtn.setAttribute('aria-expanded', 'false');
+}
+
+function toggleAccountMenu(){
+if(accountDropdown.classList.contains('active')){
+closeAccountMenu();
+return;
+}
+openAccountMenu();
 }
 
 function renderCartDrawer(){
@@ -540,18 +1064,33 @@ if(maxPriceInput.value) params.set('max_price', maxPriceInput.value);
 }
 
 productStatus.textContent = 'Loading products...';
+const cachedProducts = readCachedProducts(params);
+if(cachedProducts){
+syncUrlFromFilters(params);
+renderProducts(cachedProducts);
+productStatus.textContent = `Showing ${cachedProducts.length} product(s)`;
+}
 
 try {
-const res = await fetch(`/products?${params.toString()}`);
+const headers = {};
+const token = getToken();
+if(token){
+headers.Authorization = `Bearer ${token}`;
+}
+const res = await fetch(`/products?${params.toString()}`, { headers });
 const data = await res.json();
 if(!res.ok){
 throw new Error(data.message || 'Failed to load products');
 }
+writeCachedProducts(params, Array.isArray(data) ? data : []);
+warmProductImages(Array.isArray(data) ? data : []);
 syncUrlFromFilters(params);
 renderProducts(Array.isArray(data) ? data : []);
 } catch (err) {
+if(!cachedProducts){
 productGrid.innerHTML = '';
 productStatus.textContent = 'Unable to load products right now.';
+}
 }
 }
 
@@ -586,55 +1125,7 @@ if(!cart.length){
 alert('Your cart is empty.');
 return;
 }
-
-const user = JSON.parse(localStorage.getItem(USER_KEY) || 'null');
-if(!user || !user.id){
-alert('Please login again to continue checkout.');
-window.location.href = '/login.html';
-return;
-}
-
-const productIds = [];
-cart.forEach(item => {
-for(let i = 0; i < item.qty; i += 1){
-productIds.push(item.id);
-}
-});
-
-const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-const summary = cart.map(item => `${item.name} x${item.qty}`).join('\n');
-const shippingAddress = prompt('Enter delivery address for this order:');
-if(!shippingAddress || !shippingAddress.trim()){
-alert('Delivery address is required.');
-return;
-}
-
-const paymentMode = prompt('Enter payment mode (UPI / Card / COD):', 'UPI') || 'UPI';
-const paymentStatus = paymentMode.trim().toUpperCase() === 'COD' ? 'Pending' : 'Paid';
-const proceed = confirm(`Cart total: ₹${total.toFixed(2)}\nPayment mode: ${paymentMode}\nPayment status: ${paymentStatus}\n\n${summary}\n\nProceed to checkout?`);
-if(!proceed) return;
-
-try {
-const res = await fetch('/checkout', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({
-user_id: user.id,
-product_ids: productIds,
-shipping_address: shippingAddress.trim(),
-payment_mode: paymentMode.trim() || 'UPI',
-payment_status: paymentStatus
-})
-});
-const data = await res.json();
-if(!res.ok){
-throw new Error(data.message || 'Checkout failed');
-}
-alert(`Payment Successful\nOrder: ${data.invoice.order_number}\nTotal: ₹${Number(data.invoice.total_price || 0).toFixed(2)}\nProtein gained: ${Number(data.invoice.total_protein_gained || 0).toFixed(1)}g`);
-saveCart([]);
-} catch (err) {
-alert(err.message || 'Checkout failed. Try again.');
-}
+window.location.href = '/cart.html';
 }
 
 priceFilter.addEventListener('change', toggleCustomPriceRange);
@@ -648,22 +1139,74 @@ clearTimeout(searchDebounceTimer);
 searchDebounceTimer = setTimeout(fetchProducts, 300);
 });
 cartBtn.addEventListener('click', () => {
+closeAccountMenu();
 openCartDrawer();
+});
+accountMenuBtn.addEventListener('click', (event) => {
+event.stopPropagation();
+toggleAccountMenu();
 });
 closeDrawerBtn.addEventListener('click', closeCartDrawer);
 cartOverlay.addEventListener('click', closeCartDrawer);
 clearDrawerCartBtn.addEventListener('click', () => saveCart([]));
 drawerCheckoutBtn.addEventListener('click', checkoutCart);
+homeEditCalculatorBtn.addEventListener('click', openCalculator);
+homeRecalculateBtn.addEventListener('click', openCalculator);
+closeRatingModalBtn.addEventListener('click', closeRatingModal);
+ratingModal.addEventListener('click', (event) => {
+if(event.target === ratingModal){
+closeRatingModal();
+}
+});
+submitReviewBtn.addEventListener('click', async () => {
+if(!ratingModalState.productId){
+return;
+}
+if(!ratingModalState.selectedRating){
+modalReviewMessage.textContent = 'Please select a rating before submitting.';
+return;
+}
+
+modalReviewMessage.textContent = 'Saving your review...';
+try{
+await submitRating(ratingModalState.productId, ratingModalState.selectedRating, modalReviewInput.value.trim());
+const currentProduct = currentProducts.find((product) => product.id === ratingModalState.productId);
+if(currentProduct){
+await loadProductReviews(currentProduct);
+}
+modalReviewMessage.textContent = 'Your rating and review were saved.';
+}catch(error){
+modalReviewMessage.textContent = error.message || 'Unable to save your review.';
+}
+});
+document.addEventListener('click', (event) => {
+if(!accountDropdown.contains(event.target)){
+closeAccountMenu();
+}
+});
+document.addEventListener('keydown', (event) => {
+if(event.key === 'Escape' && !ratingModal.classList.contains('hidden')){
+closeRatingModal();
+}
+});
 logoutBtn.addEventListener('click', () => {
-localStorage.removeItem(USER_KEY);
-localStorage.removeItem(CART_KEY);
-localStorage.removeItem(TOKEN_KEY);
-window.location.href = '/login.html';
+clearClientSession();
+window.location.replace('/login.html');
+});
+window.addEventListener('pageshow', () => {
+if(!getToken()){
+window.location.replace('/login.html');
+return;
+}
+updateCartCount();
+renderCartDrawer();
+closeAccountMenu();
 });
 
 toggleCustomPriceRange();
 updateCartCount();
 renderCartDrawer();
+renderHomeCalculatorPlan();
 hydrateFiltersFromUrl();
 fetchProducts();
 </script>

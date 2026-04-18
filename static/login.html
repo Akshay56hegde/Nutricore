@@ -253,6 +253,21 @@ let user = null;
 const USER_KEY = 'nutricore_user';
 const TOKEN_KEY = 'nutricore_token';
 
+function redirectIfAuthenticated(){
+const token=localStorage.getItem(TOKEN_KEY)||'';
+let savedUser=null;
+try{
+savedUser=JSON.parse(localStorage.getItem(USER_KEY)||'null');
+}catch(e){
+savedUser=null;
+}
+if(token&&savedUser&&savedUser.id){
+window.location.replace(savedUser.is_admin ? '/adminpanel.html' : '/store');
+return true;
+}
+return false;
+}
+
 function showView(v) {
 ['view-auth','view-dashboard','view-admin'].forEach(id=>document.getElementById(id).classList.add('hidden'));
 document.getElementById('view-'+v).classList.remove('hidden');
@@ -297,9 +312,22 @@ const data=await res.json();
 
 if(res.ok){
 user=data.user;
-localStorage.setItem(USER_KEY, JSON.stringify(user));
 localStorage.setItem(TOKEN_KEY, data.token || '');
-window.location.href = user.is_admin ? '/adminpanel.html' : '/homepage.html';
+
+let persistedUser=data.user||{};
+try{
+const profileRes=await fetch('/user/profile',{
+headers:{Authorization:`Bearer ${data.token||''}`}
+});
+const profileData=await profileRes.json();
+if(profileRes.ok){
+persistedUser={...persistedUser,...profileData};
+}
+}catch(error){
+}
+
+localStorage.setItem(USER_KEY, JSON.stringify(persistedUser));
+window.location.replace(user.is_admin ? `/adminpanel.html?v=${Date.now()}` : `/store?v=${Date.now()}`);
 }else{
 showMessage('login-message',data.message);
 }
@@ -374,6 +402,10 @@ showMessage('login-message','Registered successfully','success');
 const data=await res.json();
 showMessage('register-message',data.message);
 }
+}
+
+if(!redirectIfAuthenticated()){
+window.addEventListener('pageshow',()=>{redirectIfAuthenticated()});
 }
 </script>
 

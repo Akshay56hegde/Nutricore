@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCore Admin Products</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
+.panel{background:rgba(15,23,42,.92);border:1px solid #334155;box-shadow:0 20px 45px rgba(2,6,23,.35)}
+.hero{background:linear-gradient(120deg,#020617 0%,#0f172a 48%,#1e293b 100%)}
+.btn-primary{background:#22c55e}.btn-primary:hover{background:#16a34a}
+.btn-secondary{background:#1e293b;border:1px solid #334155}.btn-secondary:hover{background:#334155}
+.soft{background:rgba(2,6,23,.48);border:1px solid rgba(148,163,184,.12)}
+</style>
+</head>
+<body>
+<nav class="bg-black/45 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<a href="/landingpage.html" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
+<span class="hidden md:inline text-slate-400">Admin Products</span>
+</div>
+<div class="flex items-center gap-3">
+<a href="/adminpanel.html" class="btn-secondary px-4 py-2 rounded-xl text-sm">Dashboard</a>
+<a href="/store" class="btn-secondary px-4 py-2 rounded-xl text-sm">View Store</a>
+<button id="logoutBtn" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-sm font-bold">Logout</button>
+</div>
+</nav>
+
+<main class="p-6 md:p-10 space-y-8">
+<section class="hero panel rounded-[30px] p-6 md:p-8">
+<div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-8">
+<div class="max-w-3xl">
+<p class="text-green-400 text-sm font-bold uppercase tracking-[0.3em]">Catalog</p>
+<h1 class="text-4xl md:text-5xl font-black mt-3 leading-tight">Manage your product catalog.</h1>
+<p class="text-slate-300 mt-4 text-lg leading-relaxed">Add, review, and maintain products for the live storefront.</p>
+</div>
+<div class="flex flex-wrap gap-3">
+<a href="/admin-products.html" class="btn-primary px-5 py-3 rounded-2xl font-bold">Products</a>
+<a href="/admin-offers.html" class="btn-secondary px-5 py-3 rounded-2xl font-bold">Offers</a>
+<a href="/admin-users.html" class="btn-secondary px-5 py-3 rounded-2xl font-bold">Users</a>
+</div>
+</div>
+</section>
+
+<section class="grid grid-cols-1 xl:grid-cols-[0.95fr_1.05fr] gap-8">
+<section class="panel rounded-[28px] p-6">
+<p class="text-sm uppercase tracking-[0.25em] text-green-400">Add Product</p>
+<h2 class="text-3xl font-black mt-3">Publish a new store item</h2>
+<p class="text-slate-400 mt-3">Fill in the details below and push the product live into the storefront catalog.</p>
+<form id="addProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+<input id="productName" type="text" placeholder="Product name" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="productBrand" type="text" placeholder="Brand" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="productProtein" type="number" min="0" step="0.1" placeholder="Protein per serving (g)" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="productQuantity" type="text" placeholder="Net quantity (e.g. 1kg or 500g)" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="productPrice" type="number" min="0" step="0.01" placeholder="Price" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="productType" type="text" placeholder="Protein type (e.g. Whey Protein Isolate)" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<label for="productImageFile" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 flex items-center justify-between gap-3 cursor-pointer">
+<span id="productImageLabel" class="text-slate-400">Choose product image</span>
+<span class="text-green-400 text-sm font-bold">Browse</span>
+</label>
+<input id="productImageFile" type="file" accept="image/*" class="hidden">
+<input id="productImage" type="hidden">
+<div class="md:col-span-2 flex items-center gap-3">
+<button type="submit" class="btn-primary px-5 py-3 rounded-xl font-bold">Add Product</button>
+<p id="productFormMessage" class="text-sm text-slate-300"></p>
+</div>
+</form>
+</section>
+
+<section class="panel rounded-[28px] p-6">
+<div class="flex items-center justify-between gap-4 mb-5 flex-wrap">
+<div>
+<p class="text-sm uppercase tracking-[0.25em] text-green-400">Live Catalog</p>
+<h2 class="text-3xl font-black mt-3">Current products</h2>
+</div>
+<div class="flex items-center gap-3">
+<input id="productSearchInput" type="text" placeholder="Search product, brand, or type" class="w-[300px] max-w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<button id="refreshProductsBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm">Refresh</button>
+</div>
+</div>
+<div id="productList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+<div class="mt-5">
+<button id="toggleProductsBtn" class="hidden btn-secondary px-4 py-2 rounded-xl text-sm">View More</button>
+</div>
+</section>
+</section>
+</main>
+
+<script>
+const USER_KEY='nutricore_user';
+const TOKEN_KEY='nutricore_token';
+const ADMIN_EMAIL='nutricoreadmin@gmail.com';
+const DEFAULT_VISIBLE_PRODUCTS=6;
+const state={products:[],query:'',showAllProducts:false,editingProductId:null,editImageUrl:''};
+function safeParse(value){try{return JSON.parse(value||'null')}catch(error){return null}}
+const user=safeParse(localStorage.getItem(USER_KEY));
+const token=localStorage.getItem(TOKEN_KEY)||'';
+if(!user||!user.is_admin||user.email!==ADMIN_EMAIL||!token){window.location.replace('/login.html')}
+function authHeaders(extra={}){return {'Content-Type':'application/json','Authorization':`Bearer ${token}`,...extra}}
+async function fetchJson(url,options={}){const response=await fetch(url,options);const data=await response.json();if(!response.ok){throw new Error(data.message||'Request failed')}return data}
+function formatCurrency(value){return `Rs ${Number(value||0).toFixed(2)}`}
+function escapeHtml(value){return String(value||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;')}
+function resetImagePicker(){document.getElementById('productImage').value='';document.getElementById('productImageFile').value='';document.getElementById('productImageLabel').textContent='Choose product image';document.getElementById('productImageLabel').className='text-slate-400'}
+function getEditProduct(){return state.products.find((product)=>product.id===state.editingProductId)||null}
+
+async function loadProducts(){state.products=await fetchJson('/products');renderProducts()}
+
+function renderProducts(){
+const root=document.getElementById('productList');
+const toggleBtn=document.getElementById('toggleProductsBtn');
+const q=state.query.trim().toLowerCase();
+const filtered=state.products.filter((product)=>!q||[product.name,product.brand,product.protein_type].filter(Boolean).some((value)=>String(value).toLowerCase().includes(q)));
+const visible=state.showAllProducts?filtered:filtered.slice(0,DEFAULT_VISIBLE_PRODUCTS);
+if(!visible.length){
+root.innerHTML='<div class="soft rounded-2xl p-5 text-slate-300 md:col-span-2">No products found.</div>';
+toggleBtn.classList.add('hidden');
+return;
+}
+root.innerHTML=visible.map((product)=>`
+<article class="soft rounded-2xl p-4 flex gap-4">
+<img src="${escapeHtml(product.image_url||'/images/products/placeholder.svg')}" alt="${escapeHtml(product.name)}" class="w-24 h-24 rounded-2xl object-cover bg-slate-900" onerror="this.onerror=null;this.src='/images/products/placeholder.svg'">
+<div class="flex-1">
+<div class="flex items-start justify-between gap-3">
+<div>
+<h3 class="font-bold text-lg leading-tight">${escapeHtml(product.name)}</h3>
+<p class="text-slate-400 text-sm mt-1">${escapeHtml(product.brand||'NutriCore')} - ${escapeHtml(product.protein_type||'Whey Protein Concentrate')}</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="btn-secondary px-3 py-2 rounded-xl text-sm font-bold" onclick="startEditProduct(${product.id})">Edit</button>
+<button class="bg-red-600 hover:bg-red-500 px-3 py-2 rounded-xl text-sm font-bold" onclick="removeProduct(${product.id})">Delete</button>
+</div>
+</div>
+<div class="mt-4 flex flex-wrap gap-2 text-sm">
+<span class="soft px-3 py-1 rounded-full">${Number(product.protein||0)}g per serving</span>
+<span class="soft px-3 py-1 rounded-full">${escapeHtml(product.quantity||'Quantity not added')}</span>
+<span class="soft px-3 py-1 rounded-full">${formatCurrency(product.price)}</span>
+<span class="soft px-3 py-1 rounded-full">${product.rating?`${Number(product.rating).toFixed(1)} rating`:'Awaiting ratings'}</span>
+</div>
+${state.editingProductId===product.id?`
+<div class="mt-4 soft rounded-2xl p-4">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<input id="editName" type="text" value="${escapeHtml(product.name)}" placeholder="Product name" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="editBrand" type="text" value="${escapeHtml(product.brand||'NutriCore')}" placeholder="Brand" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="editProtein" type="number" min="0" step="0.1" value="${Number(product.protein||0)}" placeholder="Protein per serving (g)" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="editQuantity" type="text" value="${escapeHtml(product.quantity||'')}" placeholder="Net quantity" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="editPrice" type="number" min="0" step="0.01" value="${Number(product.price||0)}" placeholder="Price" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="editType" type="text" value="${escapeHtml(product.protein_type||'Whey Protein Concentrate')}" placeholder="Protein type" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<label for="editProductImageFile" class="md:col-span-2 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 flex items-center justify-between gap-3 cursor-pointer">
+<span id="editProductImageLabel" class="text-slate-400">${state.editImageUrl?escapeHtml(state.editImageUrl.split('/').pop()):'Choose new product image (optional)'}</span>
+<span class="text-green-400 text-sm font-bold">Browse</span>
+</label>
+<input id="editProductImageFile" type="file" accept="image/*" class="hidden">
+<p id="editProductMessage" class="md:col-span-2 text-sm text-slate-300"></p>
+</div>
+<div class="mt-4 flex items-center gap-3">
+<button class="btn-primary px-4 py-2 rounded-xl text-sm font-bold" onclick="saveEditedProduct(${product.id})">Save</button>
+<button class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold" onclick="cancelEditProduct()">Cancel</button>
+</div>
+</div>`:''}
+</div>
+</article>`).join('');
+if(filtered.length>DEFAULT_VISIBLE_PRODUCTS){
+toggleBtn.textContent=state.showAllProducts?'View Less':'View More';
+toggleBtn.classList.remove('hidden');
+}else{
+toggleBtn.classList.add('hidden');
+}
+if(state.editingProductId){
+const editFile=document.getElementById('editProductImageFile');
+if(editFile){
+editFile.addEventListener('change',handleEditImageUpload);
+}
+}
+}
+
+function startEditProduct(productId){
+state.editingProductId=productId;
+const product=state.products.find((item)=>item.id===productId);
+state.editImageUrl=product&&product.image_url?product.image_url:'';
+renderProducts();
+}
+
+function cancelEditProduct(){
+state.editingProductId=null;
+state.editImageUrl='';
+renderProducts();
+}
+
+async function handleEditImageUpload(event){
+const file=event.target.files&&event.target.files[0];
+const message=document.getElementById('editProductMessage');
+if(!file){
+return;
+}
+document.getElementById('editProductImageLabel').textContent=file.name;
+message.textContent='Uploading image...';
+try{
+const formData=new FormData();
+formData.append('image',file);
+const response=await fetch('/admin/upload-product-image',{method:'POST',headers:{Authorization:`Bearer ${token}`},body:formData});
+const data=await response.json();
+if(!response.ok){
+throw new Error(data.message||'Unable to upload image.');
+}
+state.editImageUrl=data.image_url||state.editImageUrl;
+document.getElementById('editProductImageLabel').textContent=file.name;
+message.textContent='Image uploaded successfully.';
+}catch(error){
+message.textContent=error.message||'Unable to upload image.';
+}
+}
+
+async function saveEditedProduct(productId){
+const payload={
+name:document.getElementById('editName').value.trim(),
+brand:document.getElementById('editBrand').value.trim()||'NutriCore',
+protein:Number(document.getElementById('editProtein').value||0),
+quantity:document.getElementById('editQuantity').value.trim(),
+price:Number(document.getElementById('editPrice').value||0),
+protein_type:document.getElementById('editType').value.trim()||'Whey Protein Concentrate',
+image_url:state.editImageUrl
+};
+const message=document.getElementById('editProductMessage');
+message.textContent='Saving changes...';
+try{
+await fetchJson(`/admin/update-product/${productId}`,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+state.editingProductId=null;
+state.editImageUrl='';
+await loadProducts();
+}catch(error){
+message.textContent=error.message||'Unable to update product.';
+}
+}
+
+async function addProduct(event){
+event.preventDefault();
+const payload={
+name:document.getElementById('productName').value.trim(),
+brand:document.getElementById('productBrand').value.trim()||'NutriCore',
+protein:Number(document.getElementById('productProtein').value||0),
+quantity:document.getElementById('productQuantity').value.trim(),
+price:Number(document.getElementById('productPrice').value||0),
+protein_type:document.getElementById('productType').value.trim()||'Whey Protein Concentrate',
+image_url:document.getElementById('productImage').value.trim()
+};
+const message=document.getElementById('productFormMessage');
+if(!payload.image_url){
+message.textContent='Please choose a product image first.';
+return;
+}
+message.textContent='Saving product...';
+try{
+await fetchJson('/admin/add-product',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+document.getElementById('addProductForm').reset();
+resetImagePicker();
+message.textContent='Product added successfully.';
+await loadProducts();
+}catch(error){message.textContent=error.message||'Unable to add product.'}
+}
+
+async function removeProduct(productId){
+try{
+await fetchJson(`/admin/delete-product/${productId}`,{method:'DELETE',headers:authHeaders()});
+await loadProducts();
+}catch(error){alert(error.message||'Unable to remove product.')}
+}
+
+function logout(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem('nutricore_cart');localStorage.removeItem('nutricore_checkout_state');localStorage.removeItem('nutricore_last_invoice');window.location.replace('/login.html')}
+
+document.getElementById('addProductForm').addEventListener('submit',addProduct);
+document.getElementById('productImageFile').addEventListener('change',async(event)=>{
+const file=event.target.files&&event.target.files[0];
+const message=document.getElementById('productFormMessage');
+if(!file){
+resetImagePicker();
+return;
+}
+
+document.getElementById('productImageLabel').textContent=file.name;
+document.getElementById('productImageLabel').className='text-slate-200';
+message.textContent='Uploading image...';
+
+try{
+const formData=new FormData();
+formData.append('image',file);
+const response=await fetch('/admin/upload-product-image',{method:'POST',headers:{Authorization:`Bearer ${token}`},body:formData});
+const data=await response.json();
+if(!response.ok){
+throw new Error(data.message||'Unable to upload image.');
+}
+document.getElementById('productImage').value=data.image_url||'';
+message.textContent='Image uploaded successfully.';
+}catch(error){
+resetImagePicker();
+message.textContent=error.message||'Unable to upload image.';
+}
+});
+document.getElementById('refreshProductsBtn').addEventListener('click',loadProducts);
+document.getElementById('productSearchInput').addEventListener('input',(event)=>{state.query=event.target.value||'';state.showAllProducts=false;renderProducts()});
+document.getElementById('logoutBtn').addEventListener('click',logout);
+document.getElementById('toggleProductsBtn').addEventListener('click',()=>{state.showAllProducts=!state.showAllProducts;renderProducts()});
+window.addEventListener('pageshow',()=>{const latestUser=safeParse(localStorage.getItem(USER_KEY));const latestToken=localStorage.getItem(TOKEN_KEY)||'';if(!latestUser||!latestUser.is_admin||latestUser.email!==ADMIN_EMAIL||!latestToken){window.location.replace('/login.html');return}loadProducts().catch(()=>{})})
+
+loadProducts().catch((error)=>{alert(error.message||'Failed to load products.')});
+</script>
+</body>
+</html>

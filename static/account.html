@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCore My Account</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+body{
+background:#0f172a;
+color:#ffffff;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+.panel{
+background:#111827;
+border:1px solid #334155;
+box-shadow:0 18px 42px rgba(2,6,23,0.24);
+}
+
+.muted-card{
+background:#0f172a;
+border:1px solid #334155;
+}
+
+.profile-ring{
+background:linear-gradient(135deg,#22c55e,#0ea5e9);
+padding:4px;
+border-radius:9999px;
+display:inline-flex;
+}
+
+.profile-core{
+width:112px;
+height:112px;
+border-radius:9999px;
+background:linear-gradient(180deg,#1e293b,#020617);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:38px;
+font-weight:900;
+color:#86efac;
+}
+
+.btn-primary{
+background:#22c55e;
+}
+
+.btn-primary:hover{
+background:#16a34a;
+}
+
+.btn-secondary{
+background:#1e293b;
+border:1px solid #334155;
+}
+
+.btn-secondary:hover{
+background:#263548;
+}
+
+.text-input{
+width:100%;
+background:#020617;
+border:1px solid #334155;
+border-radius:16px;
+padding:14px 16px;
+color:#ffffff;
+outline:none;
+}
+
+.text-input:focus{
+border-color:#22c55e;
+box-shadow:0 0 0 3px rgba(34,197,94,0.14);
+}
+
+.label-text{
+font-size:12px;
+letter-spacing:0.22em;
+text-transform:uppercase;
+color:#64748b;
+font-weight:700;
+}
+</style>
+</head>
+<body>
+<nav class="bg-black/45 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<a href="/store" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
+<span class="hidden md:inline text-sm text-slate-400">My Account</span>
+</div>
+<div class="flex items-center gap-3">
+<a href="/store" class="btn-primary px-4 py-2 rounded-xl text-sm font-bold">Shop More</a>
+<a href="/orders.html" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">View History</a>
+<button id="logoutBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Logout</button>
+</div>
+</nav>
+
+<main class="max-w-6xl mx-auto px-5 md:px-8 py-8 md:py-10">
+<section class="panel rounded-[30px] p-6 md:p-8">
+<div class="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
+<aside class="muted-card rounded-[28px] p-6">
+<div class="flex flex-col items-center text-center">
+<div class="profile-ring">
+<div id="profileAvatar" class="profile-core">NC</div>
+</div>
+<h1 id="profileName" class="text-3xl font-black mt-5">NutriCore User</h1>
+<p id="profileEmail" class="text-slate-400 mt-2">user@gmail.com</p>
+<p id="profileMobile" class="text-slate-500 mt-2">+91 0000000000</p>
+<div class="grid grid-cols-3 gap-3 w-full mt-6">
+<div class="muted-card rounded-2xl p-4">
+<p class="text-xs uppercase tracking-[0.2em] text-slate-500">Orders</p>
+<p id="ordersCount" class="text-2xl font-black mt-2">0</p>
+</div>
+<div class="muted-card rounded-2xl p-4">
+<p class="text-xs uppercase tracking-[0.2em] text-slate-500">Spent</p>
+<p id="totalSpent" class="text-2xl font-black mt-2">Rs. 0</p>
+</div>
+<div class="muted-card rounded-2xl p-4">
+<p class="text-xs uppercase tracking-[0.2em] text-slate-500">Status</p>
+<p class="text-lg font-black mt-2 text-green-400">Active</p>
+</div>
+</div>
+<button id="toggleEditBtn" class="btn-primary w-full py-3 rounded-2xl font-bold mt-6">Edit Profile</button>
+</div>
+</aside>
+
+<section class="space-y-6">
+<section class="muted-card rounded-[28px] p-6 md:p-7">
+<div class="flex items-center justify-between gap-4 flex-wrap">
+<div>
+<p class="label-text">Profile Overview</p>
+<h2 class="text-2xl md:text-3xl font-black mt-3">Personal Information</h2>
+</div>
+<span class="rounded-full border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-bold text-green-300">Member Account</span>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+<div class="muted-card rounded-2xl p-5">
+<p class="label-text">Full Name</p>
+<p id="detailName" class="text-xl font-black mt-3">NutriCore User</p>
+</div>
+<div class="muted-card rounded-2xl p-5">
+<p class="label-text">Email Address</p>
+<p id="detailEmail" class="text-xl font-black mt-3 break-all">user@gmail.com</p>
+</div>
+<div class="muted-card rounded-2xl p-5">
+<p class="label-text">Mobile Number</p>
+<p id="detailMobile" class="text-xl font-black mt-3">0000000000</p>
+</div>
+<div class="muted-card rounded-2xl p-5">
+<p class="label-text">Account Type</p>
+<p id="detailRole" class="text-xl font-black mt-3">Customer</p>
+</div>
+</div>
+</section>
+
+<section id="editPanel" class="muted-card rounded-[28px] p-6 md:p-7 hidden">
+<div class="flex items-center justify-between gap-4 flex-wrap">
+<div>
+<p class="label-text">Edit Profile</p>
+<h2 class="text-2xl md:text-3xl font-black mt-3">Update Account Details</h2>
+</div>
+<button id="closeEditBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Close</button>
+</div>
+
+<div id="saveMessage" class="hidden mt-5 rounded-2xl border px-4 py-3 text-sm font-bold"></div>
+
+<form id="profileForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+<div>
+<label class="label-text" for="editName">Full Name</label>
+<input id="editName" class="text-input mt-2" type="text" placeholder="Enter your name">
+</div>
+<div>
+<label class="label-text" for="editEmail">Email Address</label>
+<input id="editEmail" class="text-input mt-2" type="email" placeholder="Enter your email">
+</div>
+<div>
+<label class="label-text" for="editMobile">Mobile Number</label>
+<input id="editMobile" class="text-input mt-2" type="tel" maxlength="10" placeholder="Enter mobile number">
+</div>
+<div class="flex items-end">
+<button type="submit" class="btn-primary w-full py-3 rounded-2xl font-bold">Save Changes</button>
+</div>
+</form>
+</section>
+
+<section class="muted-card rounded-[28px] p-6 md:p-7">
+<p class="label-text">Quick Access</p>
+<h2 class="text-2xl md:text-3xl font-black mt-3">Account Shortcuts</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+<a href="/orders.html" class="muted-card rounded-2xl p-5 block">
+<i class="fa fa-clock-rotate-left text-2xl text-green-400"></i>
+<p class="text-xl font-black mt-4">Order History</p>
+<p class="text-slate-400 mt-2">Review past orders and invoices.</p>
+</a>
+<a href="/offers.html" class="muted-card rounded-2xl p-5 block">
+<i class="fa fa-tag text-2xl text-green-400"></i>
+<p class="text-xl font-black mt-4">Offers</p>
+<p class="text-slate-400 mt-2">Copy active coupons and apply them at checkout.</p>
+</a>
+<a href="/store" class="muted-card rounded-2xl p-5 block">
+<i class="fa fa-bag-shopping text-2xl text-green-400"></i>
+<p class="text-xl font-black mt-4">Shop Products</p>
+<p class="text-slate-400 mt-2">Return to the store and continue shopping.</p>
+</a>
+</div>
+</section>
+</section>
+</div>
+</section>
+</main>
+
+<script>
+const USER_KEY='nutricore_user';
+const TOKEN_KEY='nutricore_token';
+const CHECKOUT_STATE_KEY='nutricore_checkout_state';
+const LAST_INVOICE_KEY='nutricore_last_invoice';
+
+function getUser(){
+try{
+return JSON.parse(localStorage.getItem(USER_KEY)||'null');
+}catch(e){
+return null;
+}
+}
+
+function getToken(){
+return localStorage.getItem(TOKEN_KEY)||'';
+}
+function clearClientSession(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem('nutricore_cart');localStorage.removeItem(CHECKOUT_STATE_KEY);localStorage.removeItem(LAST_INVOICE_KEY)}
+
+function escapeHtml(text){
+return String(text||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");
+}
+
+function formatCurrency(value){
+return `Rs. ${Number(value||0).toFixed(0)}`;
+}
+
+function buildInitials(name){
+const parts=String(name||'').trim().split(/\s+/).filter(Boolean).slice(0,2);
+if(!parts.length) return 'NC';
+return parts.map((part)=>part[0].toUpperCase()).join('');
+}
+
+function showSaveMessage(message,isError){
+const box=document.getElementById('saveMessage');
+box.textContent=message;
+box.className=`mt-5 rounded-2xl border px-4 py-3 text-sm font-bold ${isError?'border-red-500/40 bg-red-500/10 text-red-300':'border-green-500/40 bg-green-500/10 text-green-300'}`;
+box.classList.remove('hidden');
+}
+
+function populateProfile(user){
+const safeUser=user||{};
+const name=safeUser.name||'NutriCore User';
+const email=safeUser.email||'Not available';
+const mobile=safeUser.mobile||'Not available';
+const role=safeUser.is_admin?'Admin':'Customer';
+
+document.getElementById('profileAvatar').textContent=buildInitials(name);
+document.getElementById('profileName').textContent=name;
+document.getElementById('profileEmail').textContent=email;
+document.getElementById('profileMobile').textContent=mobile==='Not available'?mobile:`+91 ${mobile}`;
+
+document.getElementById('detailName').textContent=name;
+document.getElementById('detailEmail').textContent=email;
+document.getElementById('detailMobile').textContent=mobile;
+document.getElementById('detailRole').textContent=role;
+
+document.getElementById('editName').value=safeUser.name||'';
+document.getElementById('editEmail').value=safeUser.email||'';
+document.getElementById('editMobile').value=safeUser.mobile||'';
+}
+
+async function loadAccountStats(){
+const token=getToken();
+if(!token) return;
+try{
+const res=await fetch('/my-orders',{headers:{Authorization:`Bearer ${token}`}});
+const data=await res.json();
+if(!res.ok) return;
+const orders=Array.isArray(data)?data:[];
+const totalSpent=orders.reduce((sum,order)=>sum+Number(order.total_price||0),0);
+document.getElementById('ordersCount').textContent=String(orders.length);
+document.getElementById('totalSpent').textContent=formatCurrency(totalSpent);
+}catch(error){
+}
+}
+
+async function loadProfileFromServer(){
+const token=getToken();
+if(!token) return null;
+
+try{
+const res=await fetch('/user/profile',{headers:{Authorization:`Bearer ${token}`}});
+const data=await res.json();
+if(!res.ok){
+return null;
+}
+
+const mergedUser={...(getUser()||{}),...data};
+localStorage.setItem(USER_KEY,JSON.stringify(mergedUser));
+populateProfile(mergedUser);
+return mergedUser;
+}catch(error){
+return null;
+}
+}
+
+function openEditPanel(){
+document.getElementById('editPanel').classList.remove('hidden');
+}
+
+function closeEditPanel(){
+document.getElementById('editPanel').classList.add('hidden');
+document.getElementById('saveMessage').classList.add('hidden');
+}
+
+async function handleProfileSave(event){
+event.preventDefault();
+const user=getUser();
+if(!user){
+window.location.replace('/login.html');
+return;
+}
+
+const name=document.getElementById('editName').value.trim();
+const email=document.getElementById('editEmail').value.trim().toLowerCase();
+const mobile=document.getElementById('editMobile').value.trim();
+
+if(!name){
+showSaveMessage('Name is required.',true);
+return;
+}
+if(!email.endsWith('@gmail.com')){
+showSaveMessage('Enter a valid Gmail address.',true);
+return;
+}
+if(!/^[0-9]{10}$/.test(mobile)){
+showSaveMessage('Enter a valid 10-digit mobile number.',true);
+return;
+}
+
+try{
+const res=await fetch('/user/profile',{
+method:'POST',
+headers:{
+'Content-Type':'application/json',
+Authorization:`Bearer ${getToken()}`
+},
+body:JSON.stringify({name,email,mobile})
+});
+
+const data=await res.json();
+if(!res.ok){
+showSaveMessage(data.message||'Unable to save profile right now.',true);
+return;
+}
+
+const updatedUser={...user,...(data.user||{}),name,email,mobile};
+localStorage.setItem(USER_KEY,JSON.stringify(updatedUser));
+populateProfile(updatedUser);
+showSaveMessage(data.message||'Profile updated successfully.',false);
+}catch(error){
+showSaveMessage('Unable to save profile right now.',true);
+}
+}
+
+async function init(){
+const user=getUser();
+if(!user||!user.id||!getToken()){
+window.location.replace('/login.html');
+return;
+}
+
+populateProfile(user);
+await loadProfileFromServer();
+loadAccountStats();
+
+document.getElementById('toggleEditBtn').addEventListener('click',openEditPanel);
+document.getElementById('closeEditBtn').addEventListener('click',closeEditPanel);
+document.getElementById('profileForm').addEventListener('submit',handleProfileSave);
+document.getElementById('logoutBtn').addEventListener('click',()=>{
+clearClientSession();
+window.location.replace('/login.html');
+});
+}
+
+init();
+window.addEventListener('pageshow',()=>{
+const user=getUser();
+if(!user||!user.id||!getToken()){
+window.location.replace('/login.html');
+return;
+}
+populateProfile(user);
+loadProfileFromServer();
+loadAccountStats();
+});
+</script>
+</body>
+</html>

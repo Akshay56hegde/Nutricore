@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriCore Admin Users</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
+.panel{background:rgba(15,23,42,.92);border:1px solid #334155;box-shadow:0 20px 45px rgba(2,6,23,.35)}
+.hero{background:linear-gradient(120deg,#020617 0%,#0f172a 48%,#1e293b 100%)}
+.btn-primary{background:#22c55e}.btn-primary:hover{background:#16a34a}
+.btn-secondary{background:#1e293b;border:1px solid #334155}.btn-secondary:hover{background:#334155}
+.soft{background:rgba(2,6,23,.48);border:1px solid rgba(148,163,184,.12)}
+</style>
+</head>
+<body>
+<nav class="bg-black/45 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<a href="/landingpage.html" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
+<span class="hidden md:inline text-slate-400">Admin Users</span>
+</div>
+<div class="flex items-center gap-3">
+<a href="/adminpanel.html" class="btn-secondary px-4 py-2 rounded-xl text-sm">Dashboard</a>
+<a href="/store" class="btn-secondary px-4 py-2 rounded-xl text-sm">View Store</a>
+<button id="logoutBtn" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-sm font-bold">Logout</button>
+</div>
+</nav>
+
+<main class="p-6 md:p-10 space-y-8">
+<section class="hero panel rounded-[30px] p-6 md:p-8">
+<div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-8">
+<div class="max-w-3xl">
+<p class="text-green-400 text-sm font-bold uppercase tracking-[0.3em]">Customers</p>
+<h1 class="text-4xl md:text-5xl font-black mt-3 leading-tight">Manage customer activity and history.</h1>
+<p class="text-slate-300 mt-4 text-lg leading-relaxed">Review orders, spending, and engagement from one customer view.</p>
+</div>
+<div class="flex flex-wrap gap-3">
+<a href="/admin-products.html" class="btn-secondary px-5 py-3 rounded-2xl font-bold">Products</a>
+<a href="/admin-offers.html" class="btn-secondary px-5 py-3 rounded-2xl font-bold">Offers</a>
+<a href="/admin-users.html" class="btn-primary px-5 py-3 rounded-2xl font-bold">Users</a>
+</div>
+</div>
+</section>
+
+<section class="panel rounded-[28px] p-6">
+<div class="flex items-center justify-between gap-4 mb-5 flex-wrap">
+<div>
+<p class="text-sm uppercase tracking-[0.25em] text-green-400">User Directory</p>
+<h2 class="text-3xl font-black mt-3">Customer activity and history</h2>
+<p class="text-slate-400 mt-2">Customers are listed by most recent order first, with spend, protein, and history details kept here.</p>
+</div>
+<div class="flex items-center gap-3">
+<input id="userSearchInput" type="text" placeholder="Search by name, email, or mobile" class="w-[320px] max-w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<button id="refreshUsersBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm">Refresh</button>
+</div>
+</div>
+<div id="userList" class="grid grid-cols-1 xl:grid-cols-2 gap-5"></div>
+<div class="mt-5">
+<button id="toggleUserDirectoryBtn" class="hidden btn-secondary px-4 py-2 rounded-xl text-sm">View More</button>
+</div>
+</section>
+</main>
+
+<script>
+const USER_KEY='nutricore_user';
+const TOKEN_KEY='nutricore_token';
+const ADMIN_EMAIL='nutricoreadmin@gmail.com';
+const DEFAULT_VISIBLE_USERS=8;
+const state={users:[],query:'',showAllUsers:false};
+function safeParse(value){try{return JSON.parse(value||'null')}catch(error){return null}}
+const user=safeParse(localStorage.getItem(USER_KEY));
+const token=localStorage.getItem(TOKEN_KEY)||'';
+if(!user||!user.is_admin||user.email!==ADMIN_EMAIL||!token){window.location.replace('/login.html')}
+function authHeaders(extra={}){return {'Content-Type':'application/json','Authorization':`Bearer ${token}`,...extra}}
+async function fetchJson(url,options={}){const response=await fetch(url,options);const data=await response.json();if(!response.ok){throw new Error(data.message||'Request failed')}return data}
+function formatCurrency(value){return `Rs ${Number(value||0).toFixed(2)}`}
+function formatDate(value){if(!value)return'No orders yet';return new Date(value).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}
+function escapeHtml(value){return String(value||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;')}
+
+async function loadUsers(){state.users=await fetchJson('/admin/users',{headers:authHeaders()});renderUsers()}
+
+function getOrderTimestamp(value){
+if(!value)return 0;
+const stamp=new Date(value).getTime();
+return Number.isNaN(stamp)?0:stamp;
+}
+
+function renderUsers(){
+const root=document.getElementById('userList');
+const toggleBtn=document.getElementById('toggleUserDirectoryBtn');
+const q=state.query.trim().toLowerCase();
+const filtered=state.users
+.filter((customer)=>!q||[customer.name,customer.email,customer.mobile].filter(Boolean).some((value)=>String(value).toLowerCase().includes(q)))
+.sort((a,b)=>{
+const recentDiff=getOrderTimestamp(b.last_order_at)-getOrderTimestamp(a.last_order_at);
+if(recentDiff!==0)return recentDiff;
+const spendDiff=Number(b.total_spend||0)-Number(a.total_spend||0);
+if(spendDiff!==0)return spendDiff;
+return String(a.name||'').localeCompare(String(b.name||''));
+});
+const visible=state.showAllUsers?filtered:filtered.slice(0,DEFAULT_VISIBLE_USERS);
+if(!visible.length){
+root.innerHTML='<div class="soft rounded-2xl p-5 text-slate-300 xl:col-span-2">No registered users found.</div>';
+toggleBtn.classList.add('hidden');
+return;
+}
+root.innerHTML=visible.map((customer)=>{
+const intakeHistory=customer.history.length?customer.history.slice(0,5).map((item)=>`<li>${escapeHtml(item.product_name)} - ${Number(item.protein_consumed||0)}g</li>`).join(''):'<li>No intake logs yet.</li>';
+const orderHistory=customer.orders.length?customer.orders.map((order)=>`<li>${escapeHtml(order.order_number)} - ${formatCurrency(order.total_price)} - ${escapeHtml(order.payment_status)}</li>`).join(''):'<li>No orders yet.</li>';
+return `<article class="soft rounded-2xl p-5">
+<div class="flex items-start justify-between gap-4">
+<div>
+<h3 class="text-xl font-black">${escapeHtml(customer.name)}</h3>
+<p class="text-slate-400 text-sm mt-1">${escapeHtml(customer.email)}</p>
+<p class="text-slate-500 text-sm mt-2">${escapeHtml(customer.mobile||'No mobile')}</p>
+<p class="text-green-300 text-sm mt-3">Recent order: ${escapeHtml(formatDate(customer.last_order_at))}</p>
+</div>
+<button class="btn-secondary px-3 py-2 rounded-xl text-sm" data-browse-user="${customer.id}">Browse</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+<div class="soft rounded-2xl p-4"><p class="text-slate-500 text-xs uppercase tracking-[0.2em]">Orders</p><p class="text-xl font-black mt-2">${Number(customer.order_count||0)}</p></div>
+<div class="soft rounded-2xl p-4"><p class="text-slate-500 text-xs uppercase tracking-[0.2em]">Spend</p><p class="text-xl font-black mt-2">${formatCurrency(customer.total_spend||0)}</p></div>
+<div class="soft rounded-2xl p-4"><p class="text-slate-500 text-xs uppercase tracking-[0.2em]">Protein</p><p class="text-xl font-black mt-2">${Number(customer.total_protein_logged||0).toFixed(1)}g</p></div>
+<div class="soft rounded-2xl p-4"><p class="text-slate-500 text-xs uppercase tracking-[0.2em]">Last Order</p><p class="text-sm font-bold mt-2">${escapeHtml(formatDate(customer.last_order_at))}</p></div>
+</div>
+<div id="user-details-${customer.id}" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+<div class="bg-slate-950/70 rounded-2xl p-4 border border-slate-800"><p class="font-bold mb-3">Recent Intake</p><ul class="space-y-2 text-sm text-slate-300">${intakeHistory}</ul></div>
+<div class="bg-slate-950/70 rounded-2xl p-4 border border-slate-800"><p class="font-bold mb-3">Recent Orders</p><ul class="space-y-2 text-sm text-slate-300">${orderHistory}</ul></div>
+</div>
+</article>`;
+}).join('');
+if(filtered.length>DEFAULT_VISIBLE_USERS){
+toggleBtn.textContent=state.showAllUsers?'View Less':'View More';
+toggleBtn.classList.remove('hidden');
+}else{
+toggleBtn.classList.add('hidden');
+}
+
+document.querySelectorAll('[data-browse-user]').forEach((button)=>{
+button.addEventListener('click',()=>{
+const userId=button.getAttribute('data-browse-user');
+const details=document.getElementById(`user-details-${userId}`);
+const isHidden=details.classList.contains('hidden');
+details.classList.toggle('hidden',!isHidden);
+button.textContent=isHidden?'Hide':'Browse';
+});
+});
+}
+
+function logout(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem('nutricore_cart');localStorage.removeItem('nutricore_checkout_state');localStorage.removeItem('nutricore_last_invoice');window.location.replace('/login.html')}
+
+document.getElementById('refreshUsersBtn').addEventListener('click',loadUsers);
+document.getElementById('userSearchInput').addEventListener('input',(event)=>{state.query=event.target.value||'';state.showAllUsers=false;renderUsers()});
+document.getElementById('logoutBtn').addEventListener('click',logout);
+window.addEventListener('pageshow',()=>{const latestUser=safeParse(localStorage.getItem(USER_KEY));const latestToken=localStorage.getItem(TOKEN_KEY)||'';if(!latestUser||!latestUser.is_admin||latestUser.email!==ADMIN_EMAIL||!latestToken){window.location.replace('/login.html');return}loadUsers().catch(()=>{})})
+document.getElementById('toggleUserDirectoryBtn').addEventListener('click',()=>{state.showAllUsers=!state.showAllUsers;renderUsers()});
+
+loadUsers().catch((error)=>{alert(error.message||'Failed to load users.')});
+</script>
+</body>
+</html>
