@@ -52,7 +52,7 @@ body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 <p class="text-slate-400 mt-2">Customers are listed by most recent order first, with spend, protein, and history details kept here.</p>
 </div>
 <div class="flex items-center gap-3">
-<input id="userSearchInput" type="text" placeholder="Search by name, email, or mobile" class="w-[320px] max-w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
+<input id="userSearchInput" name="nc_admin_user_search" type="text" placeholder="Search by name, email, or mobile" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" class="w-[320px] max-w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3">
 <button id="refreshUsersBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm">Refresh</button>
 </div>
 </div>
@@ -63,6 +63,7 @@ body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 </section>
 </main>
 
+<script src="/auth.js"></script>
 <script>
 const USER_KEY='nutricore_user';
 const TOKEN_KEY='nutricore_token';
@@ -70,11 +71,10 @@ const ADMIN_EMAIL='nutricoreadmin@gmail.com';
 const DEFAULT_VISIBLE_USERS=8;
 const state={users:[],query:'',showAllUsers:false};
 function safeParse(value){try{return JSON.parse(value||'null')}catch(error){return null}}
-const user=safeParse(localStorage.getItem(USER_KEY));
-const token=localStorage.getItem(TOKEN_KEY)||'';
-if(!user||!user.is_admin||user.email!==ADMIN_EMAIL||!token){window.location.replace('/login.html')}
-function authHeaders(extra={}){return {'Content-Type':'application/json','Authorization':`Bearer ${token}`,...extra}}
-async function fetchJson(url,options={}){const response=await fetch(url,options);const data=await response.json();if(!response.ok){throw new Error(data.message||'Request failed')}return data}
+function clearClientSession(){window.NutriCoreAuth.clearClientSession()}
+function redirectToLogin(){window.NutriCoreAuth.redirectToLogin()}
+function authHeaders(extra={}){return {'Content-Type':'application/json','Authorization':`Bearer ${window.NutriCoreAuth.getToken()}`,...extra}}
+async function fetchJson(url,options={}){const response=await fetch(url,options);const data=await response.json().catch(()=>({}));if(response.status===401||response.status===403){redirectToLogin();return new Promise(()=>{})}if(!response.ok){throw new Error(data.message||'Request failed')}return data}
 function formatCurrency(value){return `Rs ${Number(value||0).toFixed(2)}`}
 function formatDate(value){if(!value)return'No orders yet';return new Date(value).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}
 function escapeHtml(value){return String(value||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;')}
@@ -117,7 +117,7 @@ return `<article class="soft rounded-2xl p-5">
 <p class="text-slate-500 text-sm mt-2">${escapeHtml(customer.mobile||'No mobile')}</p>
 <p class="text-green-300 text-sm mt-3">Recent order: ${escapeHtml(formatDate(customer.last_order_at))}</p>
 </div>
-<button class="btn-secondary px-3 py-2 rounded-xl text-sm" data-browse-user="${customer.id}">Browse</button>
+<button class="btn-secondary px-3 py-2 rounded-xl text-sm" data-browse-user="${customer.id}">View User</button>
 </div>
 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
 <div class="soft rounded-2xl p-4"><p class="text-slate-500 text-xs uppercase tracking-[0.2em]">Orders</p><p class="text-xl font-black mt-2">${Number(customer.order_count||0)}</p></div>
@@ -141,23 +141,28 @@ toggleBtn.classList.add('hidden');
 document.querySelectorAll('[data-browse-user]').forEach((button)=>{
 button.addEventListener('click',()=>{
 const userId=button.getAttribute('data-browse-user');
-const details=document.getElementById(`user-details-${userId}`);
-const isHidden=details.classList.contains('hidden');
-details.classList.toggle('hidden',!isHidden);
-button.textContent=isHidden?'Hide':'Browse';
+window.location.href=`/orders.html?admin_user_id=${encodeURIComponent(userId)}`;
 });
 });
 }
 
-function logout(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem('nutricore_cart');localStorage.removeItem('nutricore_checkout_state');localStorage.removeItem('nutricore_last_invoice');window.location.replace('/login.html')}
+function logout(){redirectToLogin()}
 
 document.getElementById('refreshUsersBtn').addEventListener('click',loadUsers);
 document.getElementById('userSearchInput').addEventListener('input',(event)=>{state.query=event.target.value||'';state.showAllUsers=false;renderUsers()});
 document.getElementById('logoutBtn').addEventListener('click',logout);
-window.addEventListener('pageshow',()=>{const latestUser=safeParse(localStorage.getItem(USER_KEY));const latestToken=localStorage.getItem(TOKEN_KEY)||'';if(!latestUser||!latestUser.is_admin||latestUser.email!==ADMIN_EMAIL||!latestToken){window.location.replace('/login.html');return}loadUsers().catch(()=>{})})
+window.addEventListener('pageshow',()=>{initAdminUsersPage()})
 document.getElementById('toggleUserDirectoryBtn').addEventListener('click',()=>{state.showAllUsers=!state.showAllUsers;renderUsers()});
 
+async function initAdminUsersPage(){
+const session=await window.NutriCoreAuth.validateSession({redirectOnFail:true,requireAdmin:true,adminEmail:ADMIN_EMAIL});
+if(!session.ok){
+return;
+}
 loadUsers().catch((error)=>{alert(error.message||'Failed to load users.')});
+}
+
+initAdminUsersPage();
 </script>
 </body>
 </html>

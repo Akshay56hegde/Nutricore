@@ -74,7 +74,6 @@ body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 <div class="flex items-center justify-between text-slate-300"><span>Subtotal</span><span id="summarySubtotal">Rs. 0.00</span></div>
 <div class="flex items-center justify-between text-slate-300"><span>Discount</span><span id="summaryDiscount" class="text-green-400">- Rs. 0.00</span></div>
 <div class="flex items-center justify-between text-slate-300"><span>Shipping</span><span id="summaryShipping">Rs. 0.00</span></div>
-<div class="flex items-center justify-between text-slate-300"><span>Total Protein</span><span id="summaryProtein">0.0g</span></div>
 <div class="border-t border-slate-800 pt-4 flex items-center justify-between text-lg font-black"><span>Total</span><span id="summaryGrandTotal">Rs. 0.00</span></div>
 <div class="flex items-center justify-between text-green-300 font-bold"><span>You Save</span><span id="summarySaved">Rs. 0.00</span></div>
 </div>
@@ -85,7 +84,7 @@ body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 <h4 class="text-lg font-black">Apply Coupon</h4>
 <p class="text-sm text-slate-400 mt-1">Enter a coupon code here.</p>
 <div class="flex gap-3 mt-4">
-<input id="couponInput" type="text" placeholder="Enter coupon code" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 uppercase">
+<input id="couponInput" name="nc_coupon_code" type="text" placeholder="Enter coupon code" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 uppercase">
 <button id="applyCouponBtn" class="btn-primary px-5 py-3 rounded-xl font-bold flex items-center gap-2">
 <span id="applyCouponBtnText">Apply</span>
 <span id="applyCouponBtnClose" class="hidden text-white/90 text-sm leading-none">&times;</span>
@@ -147,6 +146,7 @@ body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 </div>
 </main>
 
+<script src="/auth.js"></script>
 <script>
 const CART_KEY='nutricore_cart';
 const USER_KEY='nutricore_user';
@@ -156,12 +156,12 @@ const LAST_INVOICE_KEY='nutricore_last_invoice';
 const coupons={SAVE10:{description:'10% off up to Rs. 400',apply:(subtotal)=>Math.min(subtotal*.10,400)},FIT20:{description:'20% off above Rs. 3000',apply:(subtotal)=>subtotal>=3000?subtotal*.20:0},FREESHIP:{description:'Free shipping on this order',apply:()=>0}};
 const productCatalog=new Map();
 
-function getUser(){try{return JSON.parse(localStorage.getItem(USER_KEY)||'null')}catch(e){return null}}
+function getUser(){return window.NutriCoreAuth.getUser()}
 function getCart(){try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){return []}}
 function saveCart(cart){localStorage.setItem(CART_KEY,JSON.stringify(cart));renderCart()}
 function getCheckoutState(){try{return JSON.parse(localStorage.getItem(CHECKOUT_STATE_KEY)||'{}')}catch(e){return {}}}
 function saveCheckoutState(next){localStorage.setItem(CHECKOUT_STATE_KEY,JSON.stringify(next))}
-function clearClientSession(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(CART_KEY);localStorage.removeItem(CHECKOUT_STATE_KEY);localStorage.removeItem(LAST_INVOICE_KEY)}
+function clearClientSession(){window.NutriCoreAuth.clearClientSession()}
 function formatCurrency(value){return `Rs. ${Number(value||0).toFixed(2)}`}
 function escapeHtml(text){return String(text||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;")}
 function resolveProductImage(url){const raw=String(url||'').trim();if(!raw)return '/images/products/placeholder.svg';if(raw.startsWith('http://')||raw.startsWith('https://')||raw.startsWith('data:')||raw.startsWith('/'))return raw;const normalized=raw.replaceAll('\\','/');if(normalized.startsWith('images/'))return `/${normalized}`;const fileName=normalized.split('/').pop();return fileName?`/images/products/${fileName}`:'/images/products/placeholder.svg'}
@@ -169,7 +169,7 @@ function warmCartImages(items){return}
 
 const state={appliedCoupon:getCheckoutState().coupon||''};
 
-function getCartMetrics(){const cart=getCart();let subtotal=0,totalItems=0,totalProtein=0;cart.forEach((item)=>{subtotal+=Number(item.price||0)*Number(item.qty||0);totalItems+=Number(item.qty||0);totalProtein+=Number(item.protein||0)*Number(item.qty||0)});let shipping=subtotal===0?0:(subtotal>999?0:49);let discount=0;const coupon=coupons[state.appliedCoupon];if(coupon){discount=coupon.apply(subtotal);if(state.appliedCoupon==='FREESHIP'){shipping=0}}return{cart,subtotal,totalItems,totalProtein,shipping,discount,grandTotal:Math.max(subtotal-discount+shipping,0)}}
+function getCartMetrics(){const cart=getCart();let subtotal=0,totalItems=0;cart.forEach((item)=>{subtotal+=Number(item.price||0)*Number(item.qty||0);totalItems+=Number(item.qty||0)});let shipping=subtotal===0?0:(subtotal>999?0:49);let discount=0;const coupon=coupons[state.appliedCoupon];if(coupon){discount=coupon.apply(subtotal);if(state.appliedCoupon==='FREESHIP'){shipping=0}}return{cart,subtotal,totalItems,shipping,discount,grandTotal:Math.max(subtotal-discount+shipping,0)}}
 
 function setRightMessage(message,isError){
 const el=document.getElementById('rightMessage');
@@ -216,7 +216,6 @@ document.getElementById('summaryItems').textContent=String(metrics.totalItems);
 document.getElementById('summarySubtotal').textContent=formatCurrency(metrics.subtotal);
 document.getElementById('summaryDiscount').textContent=`- ${formatCurrency(metrics.discount)}`;
 document.getElementById('summaryShipping').textContent=metrics.shipping===0?'FREE':formatCurrency(metrics.shipping);
-document.getElementById('summaryProtein').textContent=`${metrics.totalProtein.toFixed(1)}g`;
 document.getElementById('summaryGrandTotal').textContent=formatCurrency(metrics.grandTotal);
 document.getElementById('summarySaved').textContent=formatCurrency(metrics.discount+(metrics.shipping===0&&metrics.subtotal>0?49:0));
 const banner=document.getElementById('freeDeliveryBanner');
@@ -298,8 +297,9 @@ syncOfferCards();
 }
 
 async function init(){
-const user=getUser();
-if(!user||!user.id||!localStorage.getItem(TOKEN_KEY)){window.location.href='/login.html';return}
+const session=await window.NutriCoreAuth.validateSession({redirectOnFail:true});
+if(!session.ok){return}
+if(!window.__nutricoreCartInit){
 document.getElementById('applyCouponBtn').addEventListener('click',()=>{
 if(state.appliedCoupon){
 removeCoupon();
@@ -312,7 +312,9 @@ document.querySelectorAll('.coupon-pick').forEach((button)=>button.addEventListe
 document.getElementById('toggleOffersBtn').addEventListener('click',()=>{const panel=document.getElementById('couponPanel');const chevron=document.getElementById('offersChevron');panel.classList.toggle('hidden');chevron.classList.toggle('fa-chevron-down');chevron.classList.toggle('fa-chevron-up')});
 document.getElementById('clearCartBtn').addEventListener('click',()=>{localStorage.setItem(CART_KEY,JSON.stringify([]));renderCart();setRightMessage('Cart cleared successfully.',false)});
 document.getElementById('continueBtn').addEventListener('click',()=>{if(!getCart().length){setRightMessage('Your cart is empty. Add products before continuing.',true);return}saveCheckoutState({...getCheckoutState(),coupon:state.appliedCoupon});window.location.href='/checkout.html'});
-document.getElementById('logoutBtn').addEventListener('click',()=>{clearClientSession();window.location.replace('/login.html')});
+document.getElementById('logoutBtn').addEventListener('click',()=>{window.NutriCoreAuth.redirectToLogin()});
+window.__nutricoreCartInit=true;
+}
 renderCart();
 enrichCartWithImages().then(()=>renderCart());
 hydrateCoupon();
@@ -321,12 +323,7 @@ syncOfferCards();
 
 init();
 window.addEventListener('pageshow',()=>{
-const user=getUser();
-if(!user||!user.id||!localStorage.getItem(TOKEN_KEY)){window.location.replace('/login.html');return}
-state.appliedCoupon=getCheckoutState().coupon||'';
-renderCart();
-hydrateCoupon();
-syncOfferCards();
+init();
 });
 </script>
 </body>

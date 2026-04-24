@@ -72,22 +72,22 @@ body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 <div class="grid md:grid-cols-2 gap-4" id="addressList"></div>
 </div>
 
-<form id="addressForm" class="grid md:grid-cols-2 gap-4 mt-5">
+<form id="addressForm" class="grid md:grid-cols-2 gap-4 mt-5" autocomplete="off">
 <div>
 <label class="text-sm font-bold text-slate-300 block mb-2">Full Name</label>
-<input id="addressName" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="Enter full name">
+<input id="addressName" name="nc_checkout_name" type="text" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="Enter full name">
 </div>
 <div>
 <label class="text-sm font-bold text-slate-300 block mb-2">Mobile Number</label>
-<input id="addressPhone" type="tel" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="Enter mobile number">
+<input id="addressPhone" name="nc_checkout_phone" type="tel" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="Enter mobile number">
 </div>
 <div class="md:col-span-2">
 <label class="text-sm font-bold text-slate-300 block mb-2">Street Address</label>
-<input id="addressStreet" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="House / Flat / Street / Area">
+<input id="addressStreet" name="nc_checkout_street" type="text" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="House / Flat / Street / Area">
 </div>
 <div>
 <label class="text-sm font-bold text-slate-300 block mb-2">City</label>
-<input id="addressCity" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="Enter city">
+<input id="addressCity" name="nc_checkout_city" type="text" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="Enter city">
 </div>
 <div>
 <label class="text-sm font-bold text-slate-300 block mb-2">State</label>
@@ -97,7 +97,7 @@ body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 </div>
 <div>
 <label class="text-sm font-bold text-slate-300 block mb-2">Pincode</label>
-<input id="addressPincode" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="Enter pincode">
+<input id="addressPincode" name="nc_checkout_pincode" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="Enter pincode">
 </div>
 <div>
 <label class="text-sm font-bold text-slate-300 block mb-2">Address Label</label>
@@ -139,7 +139,6 @@ body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 <div class="flex items-center justify-between text-slate-300"><span>MRP Total</span><span id="summarySubtotal">Rs. 0.00</span></div>
 <div class="flex items-center justify-between text-slate-300"><span>Product Discount</span><span id="summaryDiscount" class="text-green-400">- Rs. 0.00</span></div>
 <div class="flex items-center justify-between text-slate-300"><span>Delivery Fee</span><span id="summaryShipping">Rs. 0.00</span></div>
-<div class="flex items-center justify-between text-slate-300"><span>Total Protein</span><span id="summaryProtein">0.0g</span></div>
 <div class="border-t border-slate-800 pt-4 flex items-center justify-between text-lg font-black"><span>Total</span><span id="summaryGrandTotal">Rs. 0.00</span></div>
 <div class="flex items-center justify-between text-green-300 font-bold"><span>You Save</span><span id="summarySaved">Rs. 0.00</span></div>
 </div>
@@ -178,7 +177,7 @@ body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 </div>
 <div class="mt-6">
 <label class="text-sm font-bold text-slate-300 block mb-2">UPI ID</label>
-<input id="upiIdInput" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="example@upi">
+<input id="upiIdInput" name="nc_upi_id" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3" placeholder="example@upi">
 <p class="text-xs text-slate-500 mt-2">You will see a short simulated payment processing screen next.</p>
 </div>
 <div class="flex items-center justify-end gap-3 mt-6">
@@ -226,6 +225,7 @@ body{background:#0f172a;color:#fff;font-family:Arial,Helvetica,sans-serif}
 </div>
 </div>
 
+<script src="/auth.js"></script>
 <script>
 const CART_KEY='nutricore_cart';
 const USER_KEY='nutricore_user';
@@ -240,12 +240,12 @@ const defaultSavedAddresses=[
 ];
 let savedAddresses=[];
 const paymentModes=[{id:'UPI',label:'UPI',icon:'fa-mobile-screen-button',note:'Instant confirmation'},{id:'Card',label:'Card',icon:'fa-credit-card',note:'Visa, Mastercard, RuPay'},{id:'Net Banking',label:'Net Banking',icon:'fa-building-columns',note:'Bank transfer style payment'},{id:'COD',label:'Cash on Delivery',icon:'fa-money-bill-wave',note:'Pay when order arrives'}];
-function getUser(){try{return JSON.parse(localStorage.getItem(USER_KEY)||'null')}catch(e){return null}}
-function getToken(){return localStorage.getItem(TOKEN_KEY)||''}
+function getUser(){return window.NutriCoreAuth.getUser()}
+function getToken(){return window.NutriCoreAuth.getToken()}
 function getCart(){try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){return []}}
 function getCheckoutState(){try{return JSON.parse(localStorage.getItem(CHECKOUT_STATE_KEY)||'{}')}catch(e){return {}}}
 function saveCheckoutState(next){localStorage.setItem(CHECKOUT_STATE_KEY,JSON.stringify(next))}
-function clearClientSession(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(CART_KEY);localStorage.removeItem(CHECKOUT_STATE_KEY);localStorage.removeItem(LAST_INVOICE_KEY)}
+function clearClientSession(){window.NutriCoreAuth.clearClientSession()}
 function normalizeSavedAddress(address,index){return{id:address.id||`saved_${Date.now()}_${index}`,label:address.label||'Home',name:address.name||'',phone:address.phone||'',street:address.street||'',city:address.city||'',state:address.state||'',pincode:address.pincode||''}}
 function getSavedAddresses(){try{const stored=JSON.parse(localStorage.getItem(SAVED_ADDRESSES_KEY)||'[]');if(Array.isArray(stored)&&stored.length){return stored.map((address,index)=>normalizeSavedAddress(address,index))}return defaultSavedAddresses.map((address,index)=>normalizeSavedAddress(address,index))}catch(e){return defaultSavedAddresses.map((address,index)=>normalizeSavedAddress(address,index))}}
 function saveSavedAddresses(next){localStorage.setItem(SAVED_ADDRESSES_KEY,JSON.stringify(next))}
@@ -262,7 +262,7 @@ function getResolvedAddress(){const form=getAddressFormValue();if(!form.name||!f
 function clearAddressForm(){document.getElementById('addressName').value='';document.getElementById('addressPhone').value='';document.getElementById('addressStreet').value='';document.getElementById('addressCity').value='';document.getElementById('addressState').value='';document.getElementById('addressPincode').value='';document.getElementById('addressLabel').value='Home'}
 function validateAddressForm(){const form=getAddressFormValue();if(!form.name||!form.phone||!form.street||!form.city||!form.state||!form.pincode)return{ok:false,message:'Please complete all required address fields.'};if(!/^\d{10}$/.test(form.phone))return{ok:false,message:'Please enter a valid 10-digit mobile number.'};if(!/^\d{6}$/.test(form.pincode))return{ok:false,message:'Please enter a valid 6-digit pincode.'};return{ok:true,form}}
 function setAddressFormVisibility(showForm){document.getElementById('addressForm').classList.toggle('hidden',!showForm);document.getElementById('addressFormActions').classList.toggle('hidden',!showForm);updateSelectedAddressActions()}
-function getCartMetrics(){const cart=getCart();let subtotal=0,totalItems=0,totalProtein=0;cart.forEach((item)=>{subtotal+=Number(item.price||0)*Number(item.qty||0);totalItems+=Number(item.qty||0);totalProtein+=Number(item.protein||0)*Number(item.qty||0)});let shipping=subtotal===0?0:(subtotal>999?0:49);let discount=0;const coupon=coupons[state.appliedCoupon];if(coupon){discount=coupon.apply(subtotal);if(state.appliedCoupon==='FREESHIP'){shipping=0}}return{cart,subtotal,totalItems,totalProtein,shipping,discount,grandTotal:Math.max(subtotal-discount+shipping,0)}}
+function getCartMetrics(){const cart=getCart();let subtotal=0,totalItems=0;cart.forEach((item)=>{subtotal+=Number(item.price||0)*Number(item.qty||0);totalItems+=Number(item.qty||0)});let shipping=subtotal===0?0:(subtotal>999?0:49);let discount=0;const coupon=coupons[state.appliedCoupon];if(coupon){discount=coupon.apply(subtotal);if(state.appliedCoupon==='FREESHIP'){shipping=0}}return{cart,subtotal,totalItems,shipping,discount,grandTotal:Math.max(subtotal-discount+shipping,0)}}
 function setValidationMessage(message,isError){const el=document.getElementById('validationMessage');if(!message){el.classList.add('hidden');el.textContent='';return}el.className=`card rounded-2xl p-4 text-sm font-bold ${isError?'text-red-300 border-red-500/40 bg-red-500/10':'text-green-300 border-green-500/40 bg-green-500/10'}`;el.classList.remove('hidden');el.textContent=message}
 function fillAddressForm(address){document.getElementById('addressName').value=address.name||'';document.getElementById('addressPhone').value=address.phone||'';document.getElementById('addressStreet').value=address.street||'';document.getElementById('addressCity').value=address.city||'';document.getElementById('addressState').value=address.state||'';document.getElementById('addressPincode').value=address.pincode||'';document.getElementById('addressLabel').value=address.label||'Home'}
 function updateSelectedAddressActions(){const actions=document.getElementById('selectedAddressActions');const shouldShow=!document.getElementById('addressForm').classList.contains('hidden')?false:Boolean(state.selectedAddress);actions.classList.toggle('hidden',!shouldShow)}
@@ -274,7 +274,7 @@ function saveCurrentAddress(){const validation=validateAddressForm();if(!validat
 function selectCurrentAddress(){const validation=validateAddressForm();if(!validation.ok){setValidationMessage(validation.message,true);return}state.addressConfirmed=true;setValidationMessage('Address selected successfully.',false);updateAddressSelectionUi();renderAddresses()}
 function renderPayments(){const paymentList=document.getElementById('paymentList');paymentList.innerHTML=paymentModes.map((mode)=>`<button class="choice-card ${state.selectedPayment===mode.id?'active':''} rounded-2xl p-4 text-left payment-option" data-id="${mode.id}"><div class="flex items-start justify-between gap-4"><div><i class="fa ${mode.icon} text-xl ${state.selectedPayment===mode.id?'text-green-400':'text-slate-400'}"></i><p class="font-bold mt-4">${escapeHtml(mode.label)}</p><p class="text-sm text-slate-400 mt-2">${escapeHtml(mode.note)}</p></div><i class="fa ${state.selectedPayment===mode.id?'fa-circle-check text-green-400':'fa-chevron-right text-slate-500'} mt-1"></i></div></button>`).join('');document.querySelectorAll('.payment-option').forEach((button)=>button.addEventListener('click',()=>{state.selectedPayment=button.dataset.id;renderPayments();renderSummary();updatePrimaryAction()}))}
 function updatePrimaryAction(){const button=document.getElementById('placeOrderBtn');button.textContent=state.selectedPayment==='COD'?'Confirm Cash on Delivery':'Make Payment'}
-function renderSummary(){const metrics=getCartMetrics();document.getElementById('summarySubtotal').textContent=formatCurrency(metrics.subtotal);document.getElementById('summaryDiscount').textContent=`- ${formatCurrency(metrics.discount)}`;document.getElementById('summaryShipping').textContent=metrics.shipping===0?'FREE':formatCurrency(metrics.shipping);document.getElementById('summaryProtein').textContent=`${metrics.totalProtein.toFixed(1)}g`;document.getElementById('summaryGrandTotal').textContent=formatCurrency(metrics.grandTotal);document.getElementById('summarySaved').textContent=formatCurrency(metrics.discount+(metrics.shipping===0&&metrics.subtotal>0?49:0));document.getElementById('topTotal').textContent=formatCurrency(metrics.grandTotal)}
+function renderSummary(){const metrics=getCartMetrics();document.getElementById('summarySubtotal').textContent=formatCurrency(metrics.subtotal);document.getElementById('summaryDiscount').textContent=`- ${formatCurrency(metrics.discount)}`;document.getElementById('summaryShipping').textContent=metrics.shipping===0?'FREE':formatCurrency(metrics.shipping);document.getElementById('summaryGrandTotal').textContent=formatCurrency(metrics.grandTotal);document.getElementById('summarySaved').textContent=formatCurrency(metrics.discount+(metrics.shipping===0&&metrics.subtotal>0?49:0));document.getElementById('topTotal').textContent=formatCurrency(metrics.grandTotal)}
 function openPaymentModal(title='Processing Payment',subtitle='Please wait while we place your order.'){document.getElementById('paymentModal').classList.remove('hidden');document.getElementById('paymentModalTitle').textContent=title;document.getElementById('paymentModalSubtitle').textContent=subtitle;document.getElementById('paymentProgress').style.width='12%';document.getElementById('paymentProgressText').textContent='Preparing your order...';['stepDot1','stepDot2','stepDot3'].forEach((id,index)=>document.getElementById(id).classList.toggle('active',index===0))}
 function closePaymentModal(){document.getElementById('paymentModal').classList.add('hidden')}
 function openUpiModal(){document.getElementById('upiIdInput').value=state.upiId||'';document.getElementById('upiModal').classList.remove('hidden')}
@@ -291,14 +291,11 @@ async function finalizeOrder(overridePaymentStatus){const payload=validateChecko
 async function startUpiPayment(){const payload=validateCheckoutBeforePayment();if(!payload)return;const upiId=document.getElementById('upiIdInput').value.trim();if(!/^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/i.test(upiId)){setValidationMessage('Please enter a valid UPI ID to continue.',true);return}state.upiId=upiId;closeUpiModal();setValidationMessage('',false);openUpiPendingScreen();updateUpiPendingScreen('Payment pending',`Please approve the payment request from ${upiId}. Do not close or refresh this page.`,`Your order will continue automatically after payment confirmation.`);await new Promise((resolve)=>setTimeout(resolve,5000));const isSuccess=Math.random()<0.9;if(!isSuccess){updateUpiPendingScreen('Payment failed','We could not confirm your UPI payment this time. Please try again or choose a different payment method.','No amount will be charged for this failed simulation.');await new Promise((resolve)=>setTimeout(resolve,1600));closeUpiPendingScreen();setValidationMessage('UPI payment could not be completed. Please try again or choose another payment method.',true);return}updateUpiPendingScreen('Payment received','Your UPI payment was approved successfully. We are now generating your invoice.','You will be redirected to your order details shortly.');await new Promise((resolve)=>setTimeout(resolve,900));try{await finalizeOrder('Paid')}catch(err){closeUpiPendingScreen();setValidationMessage(err.message||'Checkout failed. Please try again.',true)}}
 async function confirmCodOrder(){closeCodModal();setValidationMessage('',false);openPaymentModal('Order Placed Successfully','Your Cash on Delivery order has been confirmed successfully.');document.getElementById('paymentProgress').style.width='100%';document.getElementById('paymentProgressText').textContent='Redirecting you to your order details...';['stepDot1','stepDot2','stepDot3'].forEach((id)=>document.getElementById(id).classList.add('active'));try{await new Promise((resolve)=>setTimeout(resolve,1200));await finalizeOrder('Pending')}catch(err){closePaymentModal();setValidationMessage(err.message||'Checkout failed. Please try again.',true)}}
 function placeOrder(){setValidationMessage('',false);const payload=validateCheckoutBeforePayment();if(!payload)return;if(state.selectedPayment==='UPI'){openUpiModal();return}if(state.selectedPayment==='COD'){openCodModal();return}openPaymentModal();advancePaymentModal(1);setTimeout(()=>advancePaymentModal(2),650);setTimeout(async()=>{try{advancePaymentModal(3);await new Promise((resolve)=>setTimeout(resolve,450));await finalizeOrder(getPaymentStatus())}catch(err){closePaymentModal();setValidationMessage(err.message||'Checkout failed. Please try again.',true)}},1500)}
-function init(){const user=getUser();if(!user||!user.id||!getToken()){window.location.replace('/login.html');return}if(!getCart().length){window.location.replace('/cart.html');return}bootstrapSavedAddresses();clearAddressForm();setAddressFormVisibility(true);setSavedAddressPanelOpen(false);document.getElementById('addressState').innerHTML='<option value=\"\">Select state</option>'+indianStates.map((region)=>`<option value="${escapeHtml(region)}">${escapeHtml(region)}</option>`).join('');document.getElementById('addressPhone').addEventListener('input',(event)=>{event.target.value=event.target.value.replace(/\D/g,'').slice(0,10);state.addressConfirmed=false;updateAddressSelectionUi()});document.getElementById('addressPincode').addEventListener('input',(event)=>{event.target.value=event.target.value.replace(/\D/g,'').slice(0,6);state.addressConfirmed=false;updateAddressSelectionUi()});['addressName','addressStreet','addressCity'].forEach((id)=>document.getElementById(id).addEventListener('input',()=>{state.addressConfirmed=false;updateAddressSelectionUi()}));['addressState','addressLabel'].forEach((id)=>document.getElementById(id).addEventListener('change',()=>{state.addressConfirmed=false;updateAddressSelectionUi()}));document.getElementById('toggleSavedAddressesBtn').addEventListener('click',()=>{const panel=document.getElementById('savedAddressPanel');setSavedAddressPanelOpen(panel.classList.contains('hidden'))});document.getElementById('showAddressFormBtn').addEventListener('click',()=>{state.selectedAddress='';state.addressConfirmed=false;clearAddressForm();setAddressFormVisibility(true);updateAddressSelectionUi();renderAddresses()});document.getElementById('deleteSelectedAddressBtn').addEventListener('click',()=>{if(state.selectedAddress){deleteSavedAddress(state.selectedAddress)}});document.getElementById('saveAddressBtn').addEventListener('click',saveCurrentAddress);document.getElementById('selectAddressBtn').addEventListener('click',selectCurrentAddress);document.getElementById('placeOrderBtn').addEventListener('click',placeOrder);document.getElementById('logoutBtn').addEventListener('click',()=>{clearClientSession();window.location.replace('/login.html')});document.getElementById('cancelUpiBtn').addEventListener('click',closeUpiModal);document.getElementById('closeUpiModalBtn').addEventListener('click',closeUpiModal);document.getElementById('confirmUpiBtn').addEventListener('click',startUpiPayment);document.getElementById('cancelCodBtn').addEventListener('click',closeCodModal);document.getElementById('confirmCodBtn').addEventListener('click',confirmCodOrder);renderAddresses();renderPayments();renderSummary();updatePrimaryAction();updateAddressSelectionUi()}
+let checkoutInitialized=false;
+async function init(){const session=await window.NutriCoreAuth.validateSession({redirectOnFail:true});if(!session.ok){return}if(!getCart().length){window.location.replace('/cart.html');return}bootstrapSavedAddresses();clearAddressForm();setAddressFormVisibility(true);setSavedAddressPanelOpen(false);document.getElementById('addressState').innerHTML='<option value=\"\">Select state</option>'+indianStates.map((region)=>`<option value="${escapeHtml(region)}">${escapeHtml(region)}</option>`).join('');if(!checkoutInitialized){document.getElementById('addressPhone').addEventListener('input',(event)=>{event.target.value=event.target.value.replace(/\D/g,'').slice(0,10);state.addressConfirmed=false;updateAddressSelectionUi()});document.getElementById('addressPincode').addEventListener('input',(event)=>{event.target.value=event.target.value.replace(/\D/g,'').slice(0,6);state.addressConfirmed=false;updateAddressSelectionUi()});['addressName','addressStreet','addressCity'].forEach((id)=>document.getElementById(id).addEventListener('input',()=>{state.addressConfirmed=false;updateAddressSelectionUi()}));['addressState','addressLabel'].forEach((id)=>document.getElementById(id).addEventListener('change',()=>{state.addressConfirmed=false;updateAddressSelectionUi()}));document.getElementById('toggleSavedAddressesBtn').addEventListener('click',()=>{const panel=document.getElementById('savedAddressPanel');setSavedAddressPanelOpen(panel.classList.contains('hidden'))});document.getElementById('showAddressFormBtn').addEventListener('click',()=>{state.selectedAddress='';state.addressConfirmed=false;clearAddressForm();setAddressFormVisibility(true);updateAddressSelectionUi();renderAddresses()});document.getElementById('deleteSelectedAddressBtn').addEventListener('click',()=>{if(state.selectedAddress){deleteSavedAddress(state.selectedAddress)}});document.getElementById('saveAddressBtn').addEventListener('click',saveCurrentAddress);document.getElementById('selectAddressBtn').addEventListener('click',selectCurrentAddress);document.getElementById('placeOrderBtn').addEventListener('click',placeOrder);document.getElementById('logoutBtn').addEventListener('click',()=>{window.NutriCoreAuth.redirectToLogin()});document.getElementById('cancelUpiBtn').addEventListener('click',closeUpiModal);document.getElementById('closeUpiModalBtn').addEventListener('click',closeUpiModal);document.getElementById('confirmUpiBtn').addEventListener('click',startUpiPayment);document.getElementById('cancelCodBtn').addEventListener('click',closeCodModal);document.getElementById('confirmCodBtn').addEventListener('click',confirmCodOrder);checkoutInitialized=true}renderAddresses();renderPayments();renderSummary();updatePrimaryAction();updateAddressSelectionUi()}
 init();
 window.addEventListener('pageshow',()=>{
-if(!getUser()||!getToken()){window.location.replace('/login.html');return}
-if(!getCart().length){window.location.replace('/cart.html');return}
-renderSummary();
-updatePrimaryAction();
-updateAddressSelectionUi();
+init();
 });
 </script>
 </body>

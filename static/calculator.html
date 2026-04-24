@@ -63,20 +63,20 @@ border:1px solid rgba(148,163,184,0.14);
 <h1 class="text-4xl md:text-5xl font-black leading-tight mt-5">Build your personalized nutrition recommendation.</h1>
 <p class="text-slate-300 text-lg leading-relaxed mt-5 max-w-2xl">Estimate calories, define your daily protein target, and get a product fit that feels ready to buy.</p>
 
-<form id="calculatorForm" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
+<form id="calculatorForm" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5" autocomplete="off">
 <label class="block">
 <span class="text-sm text-slate-300 mb-2 block">Weight (kg)</span>
-<input id="weight" type="number" min="1" step="0.1" class="field w-full rounded-2xl px-4 py-4" placeholder="70">
+<input id="weight" name="nc_calc_weight" type="number" min="1" step="0.1" autocomplete="off" class="field w-full rounded-2xl px-4 py-4" placeholder="70">
 </label>
 
 <label class="block">
 <span class="text-sm text-slate-300 mb-2 block">Height (cm)</span>
-<input id="height" type="number" min="1" step="0.1" class="field w-full rounded-2xl px-4 py-4" placeholder="175">
+<input id="height" name="nc_calc_height" type="number" min="1" step="0.1" autocomplete="off" class="field w-full rounded-2xl px-4 py-4" placeholder="175">
 </label>
 
 <label class="block">
 <span class="text-sm text-slate-300 mb-2 block">Age</span>
-<input id="age" type="number" min="1" step="1" class="field w-full rounded-2xl px-4 py-4" placeholder="25">
+<input id="age" name="nc_calc_age" type="number" min="1" step="1" autocomplete="off" class="field w-full rounded-2xl px-4 py-4" placeholder="25">
 </label>
 
 <label class="block">

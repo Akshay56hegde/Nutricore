@@ -53,12 +53,12 @@ color:#fbbf24;
 <body>
 <nav class="bg-black/45 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between gap-4">
 <div class="flex items-center gap-4">
-<a href="/homepage.html" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
-<span class="hidden md:inline text-sm text-slate-400">Order Details</span>
+<a id="brandLink" href="/homepage.html" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
+<span id="navLabel" class="hidden md:inline text-sm text-slate-400">Order Details</span>
 </div>
 <div class="flex items-center gap-3">
-<a href="/homepage.html" class="btn-primary px-4 py-2 rounded-xl text-sm font-bold">Shop More</a>
-<a href="/orders.html" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">View History</a>
+<a id="primaryLink" href="/homepage.html" class="btn-primary px-4 py-2 rounded-xl text-sm font-bold">Shop More</a>
+<a id="historyLink" href="/orders.html" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">View History</a>
 <button id="logoutBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Logout</button>
 </div>
 </nav>
@@ -67,19 +67,40 @@ color:#fbbf24;
 <section id="detailsPanel" class="panel rounded-[28px] p-6 md:p-8"></section>
 </main>
 
+<script src="/auth.js"></script>
 <script>
 const USER_KEY='nutricore_user';
 const TOKEN_KEY='nutricore_token';
 const LAST_INVOICE_KEY='nutricore_last_invoice';
 const CHECKOUT_STATE_KEY='nutricore_checkout_state';
+const ADMIN_EMAIL='nutricoreadmin@gmail.com';
 
-function getUser(){try{return JSON.parse(localStorage.getItem(USER_KEY)||'null')}catch(e){return null}}
-function getToken(){return localStorage.getItem(TOKEN_KEY)||''}
+function getUser(){return window.NutriCoreAuth.getUser()}
+function getToken(){return window.NutriCoreAuth.getToken()}
 function getCheckoutState(){try{return JSON.parse(localStorage.getItem(CHECKOUT_STATE_KEY)||'{}')}catch(e){return {}}}
-function clearClientSession(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem('nutricore_cart');localStorage.removeItem(CHECKOUT_STATE_KEY);localStorage.removeItem(LAST_INVOICE_KEY)}
+function clearClientSession(){window.NutriCoreAuth.clearClientSession()}
 function formatCurrency(value){return `Rs. ${Number(value||0).toFixed(2)}`}
 function formatDateTime(value){if(!value)return'Not available';return new Date(value).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
 function escapeHtml(text){return String(text||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;")}
+function getAdminUserId(){return new URLSearchParams(window.location.search).get('admin_user_id')||''}
+function isAdminView(){
+const currentUser=getUser();
+return Boolean(getAdminUserId()&&currentUser&&currentUser.is_admin&&currentUser.email===ADMIN_EMAIL);
+}
+function getHistoryEndpoint(){
+const adminUserId=getAdminUserId();
+return isAdminView()?`/admin/users/${encodeURIComponent(adminUserId)}/orders`:'/my-orders';
+}
+function configurePage(){
+if(!isAdminView()) return;
+document.title='NutriCore Customer Order Details';
+document.getElementById('brandLink').href='/adminpanel.html';
+document.getElementById('navLabel').textContent='Admin Order Details';
+document.getElementById('primaryLink').href='/admin-users.html';
+document.getElementById('primaryLink').textContent='User Directory';
+document.getElementById('historyLink').href=`/orders.html?admin_user_id=${encodeURIComponent(getAdminUserId())}`;
+document.getElementById('historyLink').textContent='View History';
+}
 
 function aggregateItems(items){
 const grouped=new Map();
@@ -108,13 +129,12 @@ document.getElementById('detailsPanel').innerHTML=`
 <i class="fa ${isError?'fa-circle-exclamation text-red-400':'fa-box-open text-slate-500'} text-4xl"></i>
 <h1 class="text-3xl font-black mt-4">${escapeHtml(title)}</h1>
 <p class="text-slate-400 mt-3">${escapeHtml(message)}</p>
-<a href="/homepage.html" class="inline-flex items-center justify-center btn-primary px-5 py-3 rounded-2xl text-sm font-bold mt-6">Shop More</a>
+<a href="${isAdminView()?'/admin-users.html':'/homepage.html'}" class="inline-flex items-center justify-center btn-primary px-5 py-3 rounded-2xl text-sm font-bold mt-6">${isAdminView()?'User Directory':'Shop More'}</a>
 </div>`;
 }
 
 function renderOrder(order){
 const items=aggregateItems(order.items||[]);
-const totalProtein=items.reduce((sum,item)=>sum+Number(item.protein||0)*item.qty,0);
 const paymentClass=String(order.payment_status||'').toLowerCase()==='paid'?'status-paid':'status-pending';
 
 document.getElementById('detailsPanel').innerHTML=`
@@ -159,10 +179,6 @@ document.getElementById('detailsPanel').innerHTML=`
 </div>
 
 <div class="grid md:grid-cols-3 gap-4 mt-5">
-<div class="info-card rounded-[22px] p-5">
-<p class="text-sm text-slate-400">Protein Total</p>
-<p class="text-2xl font-black mt-2">${totalProtein.toFixed(1)}g</p>
-</div>
 <div class="info-card rounded-[22px] p-5">
 <p class="text-sm text-slate-400">Unique Products</p>
 <p class="text-2xl font-black mt-2">${items.length}</p>
@@ -212,8 +228,12 @@ return;
 document.getElementById('detailsPanel').innerHTML='<div class="text-center py-10 text-slate-300">Loading order details...</div>';
 
 try{
-const res=await fetch('/my-orders',{headers:{Authorization:`Bearer ${token}`}});
+const res=await fetch(getHistoryEndpoint(),{headers:{Authorization:`Bearer ${token}`}});
 const data=await res.json();
+if(res.status===401||res.status===403){
+window.NutriCoreAuth.redirectToLogin();
+return;
+}
 if(!res.ok){
 throw new Error(data.message||'Unable to fetch order details');
 }
@@ -229,28 +249,29 @@ renderMessage('Unable to Load Order',err.message||'Please try again later.',true
 }
 }
 
-function init(){
-const user=getUser();
-if(!user||!user.id||!getToken()){
-window.location.replace('/login.html');
+let pageInitialized=false;
+
+async function init(){
+const session=await window.NutriCoreAuth.validateSession({redirectOnFail:true,requireAdmin:Boolean(getAdminUserId()),adminEmail:ADMIN_EMAIL});
+if(!session.ok){
 return;
 }
 
+configurePage();
+
+if(!pageInitialized){
 document.getElementById('logoutBtn').addEventListener('click',()=>{
-clearClientSession();
-window.location.replace('/login.html');
+window.NutriCoreAuth.redirectToLogin();
 });
+pageInitialized=true;
+}
 
 loadOrderDetails();
 }
 
 init();
 window.addEventListener('pageshow',()=>{
-if(!getUser()||!getToken()){
-window.location.replace('/login.html');
-return;
-}
-loadOrderDetails();
+init();
 });
 </script>
 </body>

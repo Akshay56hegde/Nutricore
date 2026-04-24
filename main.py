@@ -236,6 +236,24 @@ def create_order_number():
     return f"NC{stamp}{suffix}"
 
 
+def refresh_cod_payment_status(orders):
+    now = datetime.utcnow()
+    updated = False
+
+    for order in orders:
+        payment_mode = (order.payment_mode or '').strip().upper()
+        payment_status = (order.payment_status or '').strip().lower()
+        if payment_mode != 'COD' or payment_status != 'pending' or not order.timestamp:
+            continue
+
+        if now - order.timestamp >= timedelta(hours=48):
+            order.payment_status = 'Paid'
+            updated = True
+
+    if updated:
+        db.session.commit()
+
+
 def serialize_order(order, user=None):
     linked_user = user or User.query.get(order.user_id)
     items = []
@@ -865,6 +883,7 @@ def my_orders():
         return error
 
     orders = Order.query.filter_by(user_id=user.id).order_by(Order.timestamp.desc()).all()
+    refresh_cod_payment_status(orders)
     return jsonify([serialize_order(order, user) for order in orders])
 
 
@@ -901,6 +920,7 @@ def get_admin_users():
     for u in users:
         history = IntakeLog.query.filter_by(user_id=u.id).order_by(IntakeLog.id.desc()).all()
         orders = Order.query.filter_by(user_id=u.id).order_by(Order.timestamp.desc()).all()
+        refresh_cod_payment_status(orders)
         total_spend = round(sum(float(order.total_price or 0) for order in orders), 2)
         total_protein_logged = round(sum(float(log.protein_consumed or 0) for log in history), 1)
         last_order = orders[0].timestamp.isoformat() if orders and orders[0].timestamp else None
@@ -927,6 +947,63 @@ def get_admin_users():
     return jsonify(payload)
 
 
+@app.route('/admin/users/<int:user_id>/orders')
+def get_admin_user_orders(user_id):
+    admin_user, error = get_authenticated_user(require_admin=True)
+    if error:
+        return error
+
+    selected_user = User.query.filter_by(id=user_id, is_admin=False).first()
+    if not selected_user:
+        return jsonify({"message": "User not found"}), 404
+
+    orders = Order.query.filter_by(user_id=selected_user.id).order_by(Order.timestamp.desc()).all()
+    refresh_cod_payment_status(orders)
+    return jsonify([serialize_order(order, selected_user) for order in orders])
+
+
+@app.route('/admin/users/<int:user_id>/history')
+def get_admin_user_history(user_id):
+    admin_user, error = get_authenticated_user(require_admin=True)
+    if error:
+        return error
+
+    selected_user = User.query.filter_by(id=user_id, is_admin=False).first()
+    if not selected_user:
+        return jsonify({"message": "User not found"}), 404
+
+    intake_logs = IntakeLog.query.filter_by(user_id=selected_user.id).order_by(IntakeLog.id.desc()).all()
+    orders = Order.query.filter_by(user_id=selected_user.id).order_by(Order.timestamp.desc()).all()
+    refresh_cod_payment_status(orders)
+
+    total_spend = round(sum(float(order.total_price or 0) for order in orders), 2)
+    total_protein_logged = round(sum(float(log.protein_consumed or 0) for log in intake_logs), 1)
+    last_order = orders[0].timestamp.isoformat() if orders and orders[0].timestamp else None
+
+    return jsonify({
+        "user": {
+            "id": selected_user.id,
+            "name": selected_user.name,
+            "email": selected_user.email,
+            "mobile": selected_user.mobile,
+            "weight": selected_user.weight or 0,
+            "target": round((selected_user.weight or 0) * (selected_user.goal_multiplier or 1.2), 1),
+            "order_count": len(orders),
+            "total_spend": total_spend,
+            "total_protein_logged": total_protein_logged,
+            "last_order_at": last_order
+        },
+        "history": [
+            {
+                "product_name": log.product_name,
+                "protein_consumed": log.protein_consumed or 0
+            }
+            for log in intake_logs
+        ],
+        "orders": [serialize_order(order, selected_user) for order in orders]
+    })
+
+
 @app.route('/admin/orders')
 def get_admin_orders():
     admin_user, error = get_authenticated_user(require_admin=True)
@@ -934,6 +1011,7 @@ def get_admin_orders():
         return error
 
     orders = Order.query.order_by(Order.timestamp.desc()).all()
+    refresh_cod_payment_status(orders)
     users = {
         user.id: user
         for user in User.query.filter(User.id.in_([order.user_id for order in orders])).all()
@@ -1014,6 +1092,74 @@ def create_admin_offer():
     db.session.add(offer)
     db.session.commit()
     return jsonify({"message": "Offer created successfully", "offer": serialize_offer(offer)}), 201
+
+
+@app.route('/admin/offers/<int:offer_id>', methods=['PUT'])
+def update_admin_offer(offer_id):
+    admin_user, error = get_authenticated_user(require_admin=True)
+    if error:
+        return error
+
+    offer = Offer.query.get(offer_id)
+    if not offer:
+        return jsonify({"message": "Offer not found"}), 404
+
+    data = request.get_json() or {}
+    code = (data.get('code') or '').strip().upper()
+    title = (data.get('title') or '').strip()
+    discount_type = (data.get('discount_type') or '').strip().lower()
+
+    if not code or not title:
+        return jsonify({"message": "Offer code and title are required"}), 400
+
+    existing_offer = Offer.query.filter(Offer.code == code, Offer.id != offer_id).first()
+    if existing_offer:
+        return jsonify({"message": "Offer code already exists"}), 400
+
+    try:
+        discount_value = parse_optional_float(data.get('discount_value'), 'Discount value')
+        min_order_amount = parse_optional_float(data.get('min_order_amount'), 'Minimum order amount')
+        max_discount = parse_optional_float(data.get('max_discount'), 'Maximum discount')
+    except ValueError as exc:
+        return jsonify({"message": str(exc)}), 400
+
+    if discount_type and discount_type not in {'percentage', 'fixed', 'free_shipping'}:
+        return jsonify({"message": "Discount type is invalid"}), 400
+
+    if discount_type in {'percentage', 'fixed'} and (discount_value is None or discount_value <= 0):
+        return jsonify({"message": "Discount value must be greater than 0"}), 400
+
+    if discount_type == 'percentage' and discount_value and discount_value > 100:
+        return jsonify({"message": "Percentage discount cannot be more than 100"}), 400
+
+    if min_order_amount is not None and min_order_amount < 0:
+        return jsonify({"message": "Minimum order amount cannot be negative"}), 400
+
+    if max_discount is not None and max_discount <= 0:
+        return jsonify({"message": "Maximum discount must be greater than 0"}), 400
+
+    condition_text = (data.get('condition_text') or '').strip()
+    if not condition_text and discount_type:
+        condition_text = build_offer_condition_text(discount_type, discount_value, min_order_amount, max_discount)
+
+    description = (data.get('description') or '').strip()
+    if not description and condition_text:
+        description = condition_text
+
+    offer.code = code
+    offer.title = title
+    offer.description = description
+    offer.badge = (data.get('badge') or offer.badge or 'Active').strip()
+    offer.cta_note = (data.get('cta_note') or '').strip()
+    offer.discount_type = discount_type or None
+    offer.discount_value = discount_value
+    offer.min_order_amount = min_order_amount
+    offer.max_discount = max_discount
+    offer.condition_text = condition_text
+    offer.is_active = bool(data.get('is_active', True))
+
+    db.session.commit()
+    return jsonify({"message": "Offer updated successfully", "offer": serialize_offer(offer)}), 200
 
 
 @app.route('/admin/offers/<int:offer_id>', methods=['DELETE'])

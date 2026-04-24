@@ -197,10 +197,11 @@ color:#f87171;
 <nav class="bg-black/50 backdrop-blur border-b border-slate-800 px-10 py-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
 <div class="flex items-center gap-6 justify-self-start">
 <h1 class="text-2xl font-black text-green-400">NUTRICORE</h1>
+<a id="adminBackBtn" href="/adminpanel.html" class="hidden text-sm font-bold px-4 py-2 rounded-xl bg-slate-800/70 border border-slate-700 hover:border-green-500/50 hover:text-green-400 transition-colors">Back to Admin Dashboard</a>
 </div>
 
-<form id="searchForm" class="relative w-[560px] max-w-[55vw]" action="/homepage.html" method="get">
-<input id="searchInput" name="q" type="text" placeholder="Search for protein products..." class="w-full px-5 py-2 rounded-full text-black">
+<form id="searchForm" class="relative w-[560px] max-w-[55vw]" action="/homepage.html" method="get" autocomplete="off">
+<input id="searchInput" name="nc_store_search" type="text" placeholder="Search for protein products..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" class="w-full px-5 py-2 rounded-full text-black">
 <button id="searchBtn" type="submit" class="absolute right-2 top-1 bg-green-500 px-4 py-1 rounded-full" aria-label="Search">
 <i class="fa fa-search text-white"></i>
 </button>
@@ -346,8 +347,8 @@ color:#f87171;
 </select>
 
 <div id="customPriceRange" class="hidden mt-3 grid grid-cols-2 gap-2">
-<input id="minPrice" type="number" min="0" placeholder="Min price" class="w-full p-2 rounded text-black">
-<input id="maxPrice" type="number" min="0" placeholder="Max price" class="w-full p-2 rounded text-black">
+<input id="minPrice" name="nc_min_price" type="number" min="0" placeholder="Min price" autocomplete="off" class="w-full p-2 rounded text-black">
+<input id="maxPrice" name="nc_max_price" type="number" min="0" placeholder="Max price" autocomplete="off" class="w-full p-2 rounded text-black">
 </div>
 </div>
 
@@ -409,7 +410,7 @@ color:#f87171;
 <div class="p-6 border-b lg:border-b-0 lg:border-r border-slate-700">
 <p class="text-sm font-bold text-slate-100">Rate this product</p>
 <div id="modalRateStars" class="flex items-center gap-2 mt-4"></div>
-<textarea id="modalReviewInput" rows="5" placeholder="Write your review (optional)" class="w-full mt-4 p-3 rounded-xl bg-slate-950 border border-slate-700 text-white resize-none"></textarea>
+<textarea id="modalReviewInput" name="nc_review_text" rows="5" placeholder="Write your review (optional)" autocomplete="off" autocapitalize="sentences" autocorrect="on" spellcheck="true" class="w-full mt-4 p-3 rounded-xl bg-slate-950 border border-slate-700 text-white resize-none"></textarea>
 <p id="modalReviewMessage" class="text-sm text-slate-400 mt-3 min-h-[20px]"></p>
 <button id="submitReviewBtn" type="button" class="btn w-full py-3 rounded-xl font-bold mt-4">Submit Review</button>
 <p id="modalLoginHint" class="text-sm text-slate-400 mt-3 hidden">Login to submit a rating and review.</p>
@@ -432,6 +433,7 @@ color:#f87171;
 </div>
 </footer>
 
+<script src="/auth.js"></script>
 <script>
 const CART_KEY = 'nutricore_cart';
 const TOKEN_KEY = 'nutricore_token';
@@ -457,6 +459,7 @@ const productGrid = document.getElementById('productGrid');
 const productStatus = document.getElementById('productStatus');
 const cartBtn = document.getElementById('cartBtn');
 const cartCountEl = document.getElementById('cartCount');
+const adminBackBtn = document.getElementById('adminBackBtn');
 const accountDropdown = document.querySelector('.account-dropdown');
 const accountMenuBtn = document.getElementById('accountMenuBtn');
 const logoutBtn = document.getElementById('logoutBtn');
@@ -498,27 +501,20 @@ let searchDebounceTimer = null;
 const ratingModalState = { productId: null, selectedRating: 0 };
 
 function getToken(){
-try{
-return localStorage.getItem(TOKEN_KEY) || '';
-}catch(e){
-return '';
-}
+return window.NutriCoreAuth.getToken();
 }
 
 function getUser(){
-try{
-return JSON.parse(localStorage.getItem(USER_KEY) || 'null');
-}catch(e){
-return null;
-}
+return window.NutriCoreAuth.getUser();
 }
 
 function clearClientSession(){
-localStorage.removeItem(USER_KEY);
-localStorage.removeItem(TOKEN_KEY);
-localStorage.removeItem(CART_KEY);
-localStorage.removeItem(CHECKOUT_STATE_KEY);
-localStorage.removeItem(LAST_INVOICE_KEY);
+window.NutriCoreAuth.clearClientSession();
+}
+
+function renderAdminBackLink(user){
+const isAdmin = Boolean(user && user.is_admin);
+adminBackBtn.classList.toggle('hidden', !isAdmin);
 }
 
 function escapeHtml(value){
@@ -782,6 +778,10 @@ headers.Authorization = `Bearer ${token}`;
 }
 const res = await fetch(`/products/${product.id}/reviews`, { headers });
 const data = await res.json();
+if(res.status === 401 || res.status === 403){
+window.NutriCoreAuth.redirectToLogin();
+return;
+}
 if(!res.ok){
 throw new Error(data.message || 'Unable to load reviews');
 }
@@ -833,6 +833,10 @@ headers: {
 body: JSON.stringify({ rating, review })
 });
 const data = await res.json();
+if(res.status === 401 || res.status === 403){
+window.NutriCoreAuth.redirectToLogin();
+return;
+}
 if(!res.ok){
 throw new Error(data.message || 'Unable to save rating');
 }
@@ -1190,25 +1194,29 @@ closeRatingModal();
 }
 });
 logoutBtn.addEventListener('click', () => {
-clearClientSession();
-window.location.replace('/login.html');
+window.NutriCoreAuth.redirectToLogin();
 });
-window.addEventListener('pageshow', () => {
-if(!getToken()){
-window.location.replace('/login.html');
+
+async function initStorePage(){
+const session = await window.NutriCoreAuth.validateSession({ redirectOnFail: true });
+if(!session.ok){
 return;
 }
+renderAdminBackLink(session.user);
 updateCartCount();
 renderCartDrawer();
 closeAccountMenu();
-});
-
-toggleCustomPriceRange();
-updateCartCount();
-renderCartDrawer();
 renderHomeCalculatorPlan();
 hydrateFiltersFromUrl();
 fetchProducts();
+}
+
+window.addEventListener('pageshow', () => {
+initStorePage();
+});
+
+toggleCustomPriceRange();
+initStorePage();
 </script>
 
 </body>

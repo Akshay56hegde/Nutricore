@@ -60,16 +60,21 @@ color:#4ade80;
 .status-pending{
 color:#fbbf24;
 }
+
+.summary-card{
+background:#0f172a;
+border:1px solid #334155;
+}
 </style>
 </head>
 <body>
 <nav class="bg-black/45 backdrop-blur border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between gap-4">
 <div class="flex items-center gap-4">
-<a href="/homepage.html" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
-<span class="hidden md:inline text-sm text-slate-400">Order History</span>
+<a id="brandLink" href="/homepage.html" class="text-2xl font-black text-green-400 tracking-wide">NUTRICORE</a>
+<span id="navLabel" class="hidden md:inline text-sm text-slate-400">Order History</span>
 </div>
 <div class="flex items-center gap-3">
-<a href="/homepage.html" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Back to Store</a>
+<a id="backLink" href="/homepage.html" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Back to Store</a>
 <button id="logoutBtn" class="btn-secondary px-4 py-2 rounded-xl text-sm font-bold">Logout</button>
 </div>
 </nav>
@@ -78,33 +83,86 @@ color:#fbbf24;
 <section class="panel rounded-[28px] p-6 md:p-8">
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 <div>
-<h1 class="text-3xl md:text-4xl font-black">Order History</h1>
-<p class="text-slate-400 mt-2">View all placed orders and open any order for full details.</p>
+<h1 id="historyTitle" class="text-3xl md:text-4xl font-black">Order History</h1>
+<p id="historySubtitle" class="text-slate-400 mt-2">View all placed orders and open any order for full details.</p>
 </div>
 <div class="flex flex-wrap gap-3">
 <div id="historyCount" class="pill px-4 py-3 rounded-2xl text-sm text-slate-300">0 Orders</div>
 <button id="refreshHistoryBtn" class="btn-secondary px-5 py-3 rounded-2xl text-sm font-bold">Refresh</button>
-<a href="/homepage.html" class="btn-primary px-5 py-3 rounded-2xl text-sm font-bold">Shop More</a>
+<a id="actionLink" href="/homepage.html" class="btn-primary px-5 py-3 rounded-2xl text-sm font-bold">Shop More</a>
 </div>
 </div>
+
+<section id="adminCustomerPanel" class="hidden mt-8">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+<div class="summary-card rounded-2xl p-5">
+<p class="text-xs uppercase tracking-[0.22em] text-slate-500">Customer</p>
+<p id="customerName" class="text-xl font-black mt-3">Customer</p>
+<p id="customerEmail" class="text-sm text-slate-400 mt-2 break-all">-</p>
+<p id="customerMobile" class="text-sm text-slate-500 mt-2">-</p>
+</div>
+<div class="summary-card rounded-2xl p-5">
+<p class="text-xs uppercase tracking-[0.22em] text-slate-500">Spend</p>
+<p id="customerSpend" class="text-2xl font-black mt-3">Rs. 0.00</p>
+<p id="customerLastOrder" class="text-sm text-slate-400 mt-2">No orders yet</p>
+</div>
+<div class="summary-card rounded-2xl p-5">
+<p class="text-xs uppercase tracking-[0.22em] text-slate-500">Orders</p>
+<p id="customerOrderCount" class="text-2xl font-black mt-3">0</p>
+<p class="text-sm text-slate-400 mt-2">Placed orders</p>
+</div>
+<div class="summary-card rounded-2xl p-5">
+<p class="text-xs uppercase tracking-[0.22em] text-slate-500">Protein Logged</p>
+<p id="customerProtein" class="text-2xl font-black mt-3">0g</p>
+<p id="customerTarget" class="text-sm text-slate-400 mt-2">Target: 0g</p>
+</div>
+</div>
+</section>
 
 <div id="historyList" class="grid grid-cols-1 xl:grid-cols-2 gap-5 mt-8"></div>
 </section>
 </main>
 
+<script src="/auth.js"></script>
 <script>
 const USER_KEY='nutricore_user';
 const TOKEN_KEY='nutricore_token';
 const LAST_INVOICE_KEY='nutricore_last_invoice';
 const CHECKOUT_STATE_KEY='nutricore_checkout_state';
+const ADMIN_EMAIL='nutricoreadmin@gmail.com';
 
-function getUser(){try{return JSON.parse(localStorage.getItem(USER_KEY)||'null')}catch(e){return null}}
-function getToken(){return localStorage.getItem(TOKEN_KEY)||''}
+function getUser(){return window.NutriCoreAuth.getUser()}
+function getToken(){return window.NutriCoreAuth.getToken()}
 function getCheckoutState(){try{return JSON.parse(localStorage.getItem(CHECKOUT_STATE_KEY)||'{}')}catch(e){return {}}}
-function clearClientSession(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem('nutricore_cart');localStorage.removeItem(CHECKOUT_STATE_KEY);localStorage.removeItem(LAST_INVOICE_KEY)}
+function clearClientSession(){window.NutriCoreAuth.clearClientSession()}
 function formatCurrency(value){return `Rs. ${Number(value||0).toFixed(2)}`}
 function formatDateTime(value){if(!value)return'Not available';return new Date(value).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
 function escapeHtml(text){return String(text||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;")}
+function getAdminUserId(){return new URLSearchParams(window.location.search).get('admin_user_id')||''}
+function isAdminView(){
+const currentUser=getUser();
+return Boolean(getAdminUserId()&&currentUser&&currentUser.is_admin&&currentUser.email===ADMIN_EMAIL);
+}
+function getHistoryEndpoint(){
+const adminUserId=getAdminUserId();
+return isAdminView()?`/admin/users/${encodeURIComponent(adminUserId)}/orders`:'/my-orders';
+}
+function getAdminHistoryEndpoint(){
+return `/admin/users/${encodeURIComponent(getAdminUserId())}/history`;
+}
+function configurePage(){
+if(!isAdminView()) return;
+document.title='NutriCore Customer Order History';
+document.getElementById('brandLink').href='/adminpanel.html';
+document.getElementById('navLabel').textContent='Admin Order History';
+document.getElementById('backLink').href='/admin-users.html';
+document.getElementById('backLink').textContent='Back to Users';
+document.getElementById('historyTitle').textContent='Customer Order History';
+document.getElementById('historySubtitle').textContent='';
+document.getElementById('actionLink').href='/admin-users.html';
+document.getElementById('actionLink').textContent='User Directory';
+document.getElementById('adminCustomerPanel').classList.remove('hidden');
+}
 
 function aggregateItems(items){
 const grouped=new Map();
@@ -123,6 +181,22 @@ return Array.from(grouped.values());
 function getHighlightedOrderNumber(){
 const checkoutState=getCheckoutState();
 return localStorage.getItem(LAST_INVOICE_KEY)||checkoutState.lastOrderNumber||'';
+}
+
+function renderAdminCustomerPanel(payload){
+if(!isAdminView()) return;
+const panel=document.getElementById('adminCustomerPanel');
+const customer=(payload&&payload.user)||{};
+
+panel.classList.remove('hidden');
+document.getElementById('customerName').textContent=customer.name||'Customer';
+document.getElementById('customerEmail').textContent=customer.email||'Not available';
+document.getElementById('customerMobile').textContent=customer.mobile||'No mobile';
+document.getElementById('customerSpend').textContent=formatCurrency(customer.total_spend||0);
+document.getElementById('customerLastOrder').textContent=`Last order: ${formatDateTime(customer.last_order_at)}`;
+document.getElementById('customerOrderCount').textContent=String(customer.order_count||0);
+document.getElementById('customerProtein').textContent=`${Number(customer.total_protein_logged||0).toFixed(1)}g`;
+document.getElementById('customerTarget').textContent=`Target: ${Number(customer.target||0).toFixed(1)}g`;
 }
 
 function renderHistory(history){
@@ -146,6 +220,9 @@ historyList.innerHTML=history.map((order)=>{
 const uniqueItems=aggregateItems(order.items||[]);
 const paymentClass=String(order.payment_status||'').toLowerCase()==='paid'?'status-paid':'status-pending';
 const isRecent=highlightedOrder && highlightedOrder===order.order_number;
+const detailUrl=isAdminView()
+? `/order-details.html?order=${encodeURIComponent(order.order_number)}&admin_user_id=${encodeURIComponent(getAdminUserId())}`
+: `/order-details.html?order=${encodeURIComponent(order.order_number)}`;
 return `
 <article class="order-card rounded-[24px] p-6">
 <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -180,7 +257,7 @@ ${uniqueItems.map((item)=>`<span class="pill px-3 py-2 rounded-full text-sm text
 </div>
 
 <div class="flex items-center justify-end mt-6">
-<a href="/order-details.html?order=${encodeURIComponent(order.order_number)}" class="btn-secondary px-5 py-3 rounded-2xl text-sm font-bold">View Details</a>
+<a href="${detailUrl}" class="btn-secondary px-5 py-3 rounded-2xl text-sm font-bold">View Details</a>
 </div>
 </article>`;
 }).join('');
@@ -198,8 +275,27 @@ return;
 historyList.innerHTML='<div class="panel rounded-[24px] p-8 xl:col-span-2 text-center text-slate-300">Loading order history...</div>';
 
 try{
-const res=await fetch('/my-orders',{headers:{Authorization:`Bearer ${token}`}});
+if(isAdminView()){
+const res=await fetch(getAdminHistoryEndpoint(),{headers:{Authorization:`Bearer ${token}`}});
 const data=await res.json();
+if(res.status===401||res.status===403){
+window.NutriCoreAuth.redirectToLogin();
+return;
+}
+if(!res.ok){
+throw new Error(data.message||'Unable to fetch customer history');
+}
+renderAdminCustomerPanel(data||{});
+renderHistory(Array.isArray(data&&data.orders)?data.orders:[]);
+return;
+}
+
+const res=await fetch(getHistoryEndpoint(),{headers:{Authorization:`Bearer ${token}`}});
+const data=await res.json();
+if(res.status===401||res.status===403){
+window.NutriCoreAuth.redirectToLogin();
+return;
+}
 if(!res.ok){
 throw new Error(data.message||'Unable to fetch order history');
 }
@@ -210,29 +306,30 @@ document.getElementById('historyCount').textContent='0 Orders';
 }
 }
 
-function init(){
-const user=getUser();
-if(!user||!user.id||!getToken()){
-window.location.replace('/login.html');
+let pageInitialized=false;
+
+async function init(){
+const session=await window.NutriCoreAuth.validateSession({redirectOnFail:true,requireAdmin:Boolean(getAdminUserId()),adminEmail:ADMIN_EMAIL});
+if(!session.ok){
 return;
 }
 
+configurePage();
+
+if(!pageInitialized){
 document.getElementById('refreshHistoryBtn').addEventListener('click',loadOrderHistory);
 document.getElementById('logoutBtn').addEventListener('click',()=>{
-clearClientSession();
-window.location.replace('/login.html');
+window.NutriCoreAuth.redirectToLogin();
 });
+pageInitialized=true;
+}
 
 loadOrderHistory();
 }
 
 init();
 window.addEventListener('pageshow',()=>{
-if(!getUser()||!getToken()){
-window.location.replace('/login.html');
-return;
-}
-loadOrderHistory();
+init();
 });
 </script>
 </body>

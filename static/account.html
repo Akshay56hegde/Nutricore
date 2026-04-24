@@ -168,18 +168,18 @@ font-weight:700;
 
 <div id="saveMessage" class="hidden mt-5 rounded-2xl border px-4 py-3 text-sm font-bold"></div>
 
-<form id="profileForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+<form id="profileForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6" autocomplete="off">
 <div>
 <label class="label-text" for="editName">Full Name</label>
-<input id="editName" class="text-input mt-2" type="text" placeholder="Enter your name">
+<input id="editName" name="nc_profile_name" class="text-input mt-2" type="text" placeholder="Enter your name" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false">
 </div>
 <div>
 <label class="label-text" for="editEmail">Email Address</label>
-<input id="editEmail" class="text-input mt-2" type="email" placeholder="Enter your email">
+<input id="editEmail" name="nc_profile_email" class="text-input mt-2" type="email" placeholder="Enter your email" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 </div>
 <div>
 <label class="label-text" for="editMobile">Mobile Number</label>
-<input id="editMobile" class="text-input mt-2" type="tel" maxlength="10" placeholder="Enter mobile number">
+<input id="editMobile" name="nc_profile_mobile" class="text-input mt-2" type="tel" maxlength="10" placeholder="Enter mobile number" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 </div>
 <div class="flex items-end">
 <button type="submit" class="btn-primary w-full py-3 rounded-2xl font-bold">Save Changes</button>
@@ -213,6 +213,7 @@ font-weight:700;
 </section>
 </main>
 
+<script src="/auth.js"></script>
 <script>
 const USER_KEY='nutricore_user';
 const TOKEN_KEY='nutricore_token';
@@ -220,17 +221,13 @@ const CHECKOUT_STATE_KEY='nutricore_checkout_state';
 const LAST_INVOICE_KEY='nutricore_last_invoice';
 
 function getUser(){
-try{
-return JSON.parse(localStorage.getItem(USER_KEY)||'null');
-}catch(e){
-return null;
-}
+return window.NutriCoreAuth.getUser();
 }
 
 function getToken(){
-return localStorage.getItem(TOKEN_KEY)||'';
+return window.NutriCoreAuth.getToken();
 }
-function clearClientSession(){localStorage.removeItem(USER_KEY);localStorage.removeItem(TOKEN_KEY);localStorage.removeItem('nutricore_cart');localStorage.removeItem(CHECKOUT_STATE_KEY);localStorage.removeItem(LAST_INVOICE_KEY)}
+function clearClientSession(){window.NutriCoreAuth.clearClientSession()}
 
 function escapeHtml(text){
 return String(text||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");
@@ -281,6 +278,7 @@ if(!token) return;
 try{
 const res=await fetch('/my-orders',{headers:{Authorization:`Bearer ${token}`}});
 const data=await res.json();
+if(res.status===401||res.status===403){window.NutriCoreAuth.redirectToLogin();return}
 if(!res.ok) return;
 const orders=Array.isArray(data)?data:[];
 const totalSpent=orders.reduce((sum,order)=>sum+Number(order.total_price||0),0);
@@ -298,11 +296,12 @@ try{
 const res=await fetch('/user/profile',{headers:{Authorization:`Bearer ${token}`}});
 const data=await res.json();
 if(!res.ok){
+if(res.status===401||res.status===403){window.NutriCoreAuth.redirectToLogin();return null}
 return null;
 }
 
 const mergedUser={...(getUser()||{}),...data};
-localStorage.setItem(USER_KEY,JSON.stringify(mergedUser));
+window.NutriCoreAuth.persistSession(mergedUser,getToken());
 populateProfile(mergedUser);
 return mergedUser;
 }catch(error){
@@ -356,12 +355,13 @@ body:JSON.stringify({name,email,mobile})
 
 const data=await res.json();
 if(!res.ok){
+if(res.status===401||res.status===403){window.NutriCoreAuth.redirectToLogin();return}
 showSaveMessage(data.message||'Unable to save profile right now.',true);
 return;
 }
 
 const updatedUser={...user,...(data.user||{}),name,email,mobile};
-localStorage.setItem(USER_KEY,JSON.stringify(updatedUser));
+window.NutriCoreAuth.persistSession(updatedUser,getToken());
 populateProfile(updatedUser);
 showSaveMessage(data.message||'Profile updated successfully.',false);
 }catch(error){
@@ -369,36 +369,33 @@ showSaveMessage('Unable to save profile right now.',true);
 }
 }
 
+let pageInitialized=false;
+
 async function init(){
-const user=getUser();
-if(!user||!user.id||!getToken()){
-window.location.replace('/login.html');
+const session=await window.NutriCoreAuth.validateSession({redirectOnFail:true});
+if(!session.ok){
 return;
 }
+const user=session.user;
 
 populateProfile(user);
 await loadProfileFromServer();
 loadAccountStats();
 
+if(!pageInitialized){
 document.getElementById('toggleEditBtn').addEventListener('click',openEditPanel);
 document.getElementById('closeEditBtn').addEventListener('click',closeEditPanel);
 document.getElementById('profileForm').addEventListener('submit',handleProfileSave);
 document.getElementById('logoutBtn').addEventListener('click',()=>{
-clearClientSession();
-window.location.replace('/login.html');
+window.NutriCoreAuth.redirectToLogin();
 });
+pageInitialized=true;
+}
 }
 
 init();
 window.addEventListener('pageshow',()=>{
-const user=getUser();
-if(!user||!user.id||!getToken()){
-window.location.replace('/login.html');
-return;
-}
-populateProfile(user);
-loadProfileFromServer();
-loadAccountStats();
+init();
 });
 </script>
 </body>

@@ -74,10 +74,6 @@ cursor:pointer;
 NUTRICORE
 </h1>
 
-<div id="nav-links" class="hidden flex items-center gap-6 text-sm font-bold">
-<button onclick="location.reload()" class="bg-slate-800 px-5 py-2 rounded-full hover:bg-slate-700">Logout</button>
-</div>
-
 </nav>
 
 <div class="container mx-auto px-6">
@@ -86,7 +82,7 @@ NUTRICORE
 
 <!-- LOGIN -->
 
-<div id="login-form">
+<div id="login-form" autocomplete="off">
 
 <h2 class="text-3xl font-black mb-8 text-green-400 flex items-center gap-3">
 <i class="fas fa-user-circle"></i> Sign In
@@ -98,13 +94,13 @@ NUTRICORE
 
 <div class="relative">
 <i class="fas fa-envelope absolute left-4 top-4 text-slate-500"></i>
-<input id="email" type="email" placeholder="Email"
+<input id="email" name="nc_login_email" type="email" placeholder="Email" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
 class="w-full pl-12 p-4 rounded-xl">
 </div>
 
 <div class="relative">
 <i class="fas fa-lock absolute left-4 top-4 text-slate-500"></i>
-<input id="password" type="password" placeholder="Password"
+<input id="password" name="nc_login_pass" type="password" placeholder="Password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"
 class="w-full pl-12 pr-12 p-4 rounded-xl">
 <button type="button" class="toggle-pass" onclick="togglePassword('password', this)" aria-label="Show password">
 <i class="fas fa-eye"></i>
@@ -134,13 +130,13 @@ Create Account
 
 <!-- FORGOT PASSWORD -->
 
-<div id="forgot-form" class="hidden">
+<div id="forgot-form" class="hidden" autocomplete="off">
 
 <h2 class="text-2xl font-black mb-6 text-green-400">Password Recovery</h2>
 
 <div id="forgot-message" class="mb-4 hidden px-4 py-2 rounded-xl text-center font-bold"></div>
 
-<input id="f-email" type="email"
+<input id="f-email" name="nc_forgot_email" type="email" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
 placeholder="Registered Email"
 class="w-full p-4 mb-4 rounded-xl">
 
@@ -151,12 +147,12 @@ GET OTP
 
 <div id="reset-area" class="hidden pt-6 border-t border-slate-700 mt-6 space-y-3">
 
-<input id="f-token" type="text"
+<input id="f-token" name="nc_reset_token" type="text" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false"
 placeholder="Enter OTP"
 class="w-full p-4 rounded-xl">
 
 <div class="relative">
-<input id="f-pass" type="password"
+<input id="f-pass" name="nc_reset_pass" type="password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"
 placeholder="New Password"
 class="w-full pr-12 p-4 rounded-xl">
 <button type="button" class="toggle-pass" onclick="togglePassword('f-pass', this)" aria-label="Show password">
@@ -179,7 +175,7 @@ Back
 
 <!-- REGISTER -->
 
-<div id="register-form" class="hidden">
+<div id="register-form" class="hidden" autocomplete="off">
 
 <h2 class="text-3xl font-black mb-6 text-green-400 flex gap-2 items-center">
 <i class="fas fa-user-plus"></i> Register
@@ -189,18 +185,18 @@ Back
 
 <div class="space-y-4 mb-6">
 
-<input id="r-name" type="text" placeholder="Name"
+<input id="r-name" name="nc_register_name" type="text" placeholder="Name" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false"
 class="w-full p-4 rounded-xl">
 
-<input id="r-email" type="email" placeholder="Email"
+<input id="r-email" name="nc_register_email" type="email" placeholder="Email" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
 class="w-full p-4 rounded-xl">
 
-<input id="r-mobile" type="tel" maxlength="10"
+<input id="r-mobile" name="nc_register_mobile" type="tel" maxlength="10" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
 placeholder="Mobile (10 digits)"
 class="w-full p-4 rounded-xl">
 
 <div class="relative">
-<input id="r-pass" type="password"
+<input id="r-pass" name="nc_register_pass" type="password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"
 placeholder="Password"
 class="w-full pr-12 p-4 rounded-xl">
 <button type="button" class="toggle-pass" onclick="togglePassword('r-pass', this)" aria-label="Show password">
@@ -224,56 +220,13 @@ Back
 
 </div>
 
-<!-- DASHBOARD -->
-
-<div id="view-dashboard"
-class="hidden max-w-3xl mx-auto mt-20 card p-10 rounded-3xl text-center">
-
-<h2 class="text-3xl font-black text-green-400">
-Welcome to NutriCore Dashboard
-</h2>
-
 </div>
 
-<!-- ADMIN -->
-
-<div id="view-admin"
-class="hidden max-w-3xl mx-auto mt-20 card p-10 rounded-3xl text-center">
-
-<h2 class="text-3xl font-black text-green-400">
-NutriCore Admin Panel
-</h2>
-
-</div>
-
-</div>
-
+<script src="/auth.js"></script>
 <script>
-let user = null;
-const USER_KEY = 'nutricore_user';
-const TOKEN_KEY = 'nutricore_token';
-
-function redirectIfAuthenticated(){
-const token=localStorage.getItem(TOKEN_KEY)||'';
-let savedUser=null;
-try{
-savedUser=JSON.parse(localStorage.getItem(USER_KEY)||'null');
-}catch(e){
-savedUser=null;
-}
-if(token&&savedUser&&savedUser.id){
-window.location.replace(savedUser.is_admin ? '/adminpanel.html' : '/store');
-return true;
-}
-return false;
-}
-
-function showView(v) {
-['view-auth','view-dashboard','view-admin'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-document.getElementById('view-'+v).classList.remove('hidden');
-}
 
 function switchForm(v){
+resetAuthForms();
 ['login-form','register-form','forgot-form'].forEach(id=>document.getElementById(id).classList.add('hidden'));
 document.getElementById(v+'-form').classList.remove('hidden');
 }
@@ -288,6 +241,36 @@ function hideMessage(id){
 document.getElementById(id).classList.add('hidden');
 }
 
+function resetPasswordField(inputId){
+const input=document.getElementById(inputId);
+if(!input) return;
+input.value='';
+input.type='password';
+const toggleBtn=input.parentElement ? input.parentElement.querySelector('.toggle-pass') : null;
+const icon=toggleBtn ? toggleBtn.querySelector('i') : null;
+if(icon){
+icon.classList.add('fa-eye');
+icon.classList.remove('fa-eye-slash');
+}
+if(toggleBtn){
+toggleBtn.setAttribute('aria-label','Show password');
+}
+}
+
+function resetAuthForms(){
+['email','f-email','f-token','r-name','r-email','r-mobile'].forEach((id)=>{
+const input=document.getElementById(id);
+if(input){
+input.value='';
+}
+});
+['login-message','register-message','forgot-message'].forEach(hideMessage);
+resetPasswordField('password');
+resetPasswordField('f-pass');
+resetPasswordField('r-pass');
+document.getElementById('reset-area').classList.add('hidden');
+}
+
 function togglePassword(inputId,btn){
 const input=document.getElementById(inputId);
 const icon=btn.querySelector('i');
@@ -299,6 +282,7 @@ btn.setAttribute('aria-label',isHidden?'Hide password':'Show password');
 }
 
 async function login(){
+window.NutriCoreAuth.clearClientSession();
 const res=await fetch('/login',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
@@ -311,24 +295,15 @@ password:document.getElementById('password').value
 const data=await res.json();
 
 if(res.ok){
-user=data.user;
-localStorage.setItem(TOKEN_KEY, data.token || '');
-
-let persistedUser=data.user||{};
-try{
-const profileRes=await fetch('/user/profile',{
-headers:{Authorization:`Bearer ${data.token||''}`}
-});
-const profileData=await profileRes.json();
-if(profileRes.ok){
-persistedUser={...persistedUser,...profileData};
+window.NutriCoreAuth.persistSession(data.user||{}, data.token||'');
+const session=await window.NutriCoreAuth.validateSession({redirectOnFail:false});
+if(!session.ok){
+showMessage('login-message','Unable to verify your session. Please login again.');
+return;
 }
-}catch(error){
-}
-
-localStorage.setItem(USER_KEY, JSON.stringify(persistedUser));
-window.location.replace(user.is_admin ? `/adminpanel.html?v=${Date.now()}` : `/store?v=${Date.now()}`);
+window.location.replace(session.user&&session.user.is_admin ? `/adminpanel.html?v=${Date.now()}` : `/store?v=${Date.now()}`);
 }else{
+window.NutriCoreAuth.clearClientSession();
 showMessage('login-message',data.message);
 }
 }
@@ -404,9 +379,8 @@ showMessage('register-message',data.message);
 }
 }
 
-if(!redirectIfAuthenticated()){
-window.addEventListener('pageshow',()=>{redirectIfAuthenticated()});
-}
+window.NutriCoreAuth.redirectIfAuthenticated();
+window.addEventListener('pageshow',()=>{window.NutriCoreAuth.redirectIfAuthenticated()});
 </script>
 
 </body>
